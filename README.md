@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Live Polling
 
-## Getting Started
+A realtime slider poll app for meetups. Hosts can open one poll at a time from `/admin`, attendees vote anonymously on a 0–10 slider, and everyone sees live aggregates plus a history of closed polls.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Create `.env.local` with your values:
+
+```
+ADMIN_KEY=your-long-random-string
+KV_REST_API_URL=your-vercel-kv-url
+KV_REST_API_TOKEN=your-vercel-kv-token
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run locally
 
-## Learn More
+```
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Visit:
+- Attendee view: `http://localhost:3000/`
+- Admin view: `http://localhost:3000/admin?key=YOUR_ADMIN_KEY`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Aggregation test
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+npm run test:agg
+```
 
-## Deploy on Vercel
+## Manual validation (end-to-end)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1) Start the dev server:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+npm run dev
+```
+
+2) Open the admin page:
+
+```
+http://localhost:3000/admin?key=YOUR_ADMIN_KEY
+```
+
+3) Open attendee pages in multiple tabs:
+
+```
+http://localhost:3000/
+```
+
+4) Open a poll from the admin console.
+
+5) Move sliders in each attendee tab and confirm:
+- the count increases to the number of distinct anon IDs
+- the average changes as expected
+- the histogram bars update
+
+6) Close the poll and confirm:
+- attendee pages show “Waiting for the next poll”
+- the closed poll summary appears in history
+
+7) Open a new poll and confirm voting resets for the new poll.
+
+Expected example:
+If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.
+
+## Vercel deployment notes
+
+- Set `ADMIN_KEY`, `KV_REST_API_URL`, and `KV_REST_API_TOKEN` in the Vercel project environment variables.
+- The app uses `@vercel/kv` for persistence; no filesystem writes are used for poll state.
+- Admin routes validate `ADMIN_KEY` server-side before opening or closing a poll.
