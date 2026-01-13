@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import { PollHistory } from "@/components/PollHistory";
 import { PollResults } from "@/components/PollResults";
-import { type PollState } from "@/lib/pollTypes";
+import { type PollState, type PrewrittenPoll } from "@/lib/pollTypes";
 
 const POLL_INTERVAL_MS = 750;
 
@@ -19,12 +19,57 @@ export function AdminClient() {
     "slider"
   );
   const [options, setOptions] = useState<string[]>(["", ""]);
+  const [presets, setPresets] = useState<PrewrittenPoll[]>([]);
+  const [presetsError, setPresetsError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setAdminKey(searchParams.get("key"));
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!adminKey) {
+      setPresets([]);
+      setPresetsError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPresets = async () => {
+      try {
+        const response = await fetch(
+          `/api/admin/presets?key=${encodeURIComponent(adminKey)}`
+        );
+        const payload = (await response.json()) as {
+          polls?: PrewrittenPoll[];
+          error?: string;
+        };
+        if (!response.ok) {
+          throw new Error(payload.error ?? "failed to load presets");
+        }
+        if (!Array.isArray(payload.polls)) {
+          throw new Error("invalid presets response");
+        }
+        if (!cancelled) {
+          setPresets(payload.polls);
+          setPresetsError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : "unknown error";
+          setPresetsError(message);
+        }
+      }
+    };
+
+    loadPresets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [adminKey]);
 
   useEffect(() => {
     const stored = localStorage.getItem("adminAnonId");
@@ -126,6 +171,24 @@ export function AdminClient() {
     }
   };
 
+  const handlePresetSelect = (preset: PrewrittenPoll) => {
+    if (poll) {
+      return;
+    }
+    setQuestion(preset.question);
+    setPollType(preset.type);
+    if (preset.type === "multiple_choice") {
+      if (!preset.options) {
+        setError("Preset options are missing.");
+        return;
+      }
+      setOptions([...preset.options]);
+    } else {
+      setOptions(["", ""]);
+    }
+    setError(null);
+  };
+
   const handleClose = async () => {
     if (!adminKey) {
       setError("Missing admin key.");
@@ -191,6 +254,7 @@ export function AdminClient() {
     }
     return `Active: ${poll.question}`;
   }, [poll]);
+  const presetsDisabled = Boolean(poll);
 
   if (!adminKey) {
     return (
@@ -243,7 +307,7 @@ export function AdminClient() {
           </div>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.65fr)]">
           <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
             <div className="flex flex-col gap-6">
               <div className="space-y-2">
@@ -371,6 +435,67 @@ export function AdminClient() {
             title="Live results"
             large
           />
+
+          <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                  Preset polls
+                </p>
+                <h2 className="mt-2 text-balance font-[var(--font-display)] text-2xl text-[var(--ink)]">
+                  Prewritten questions
+                </h2>
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                {presets.length} presets
+              </span>
+            </div>
+
+            {presetsError ? (
+              <p className="mt-4 text-sm text-rose-700">{presetsError}</p>
+            ) : null}
+
+            {presets.length === 0 && !presetsError ? (
+              <p className="mt-4 text-sm text-[var(--ink-muted)]">
+                Add entries to data/prewritten-polls.json to see presets here.
+              </p>
+            ) : null}
+
+            <div className="mt-5 space-y-3">
+              {presets.map((preset) => {
+                const label =
+                  preset.type === "multiple_choice"
+                    ? "Multiple choice"
+                    : "Slider";
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    disabled={presetsDisabled || busy}
+                    onClick={() => handlePresetSelect(preset)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                      presetsDisabled || busy
+                        ? "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink-muted)] opacity-70"
+                        : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:-translate-y-0.5 hover:border-[var(--accent)]"
+                    }`}
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                      {label}
+                    </div>
+                    <div className="mt-2 text-base font-semibold text-[var(--ink)]">
+                      {preset.question}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-4 text-xs text-[var(--ink-muted)]">
+              {presetsDisabled
+                ? "Close the active poll to load a preset."
+                : "Click a preset to populate the form."}
+            </p>
+          </section>
         </div>
 
         <div className="text-[var(--ink)]">

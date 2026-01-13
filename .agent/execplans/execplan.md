@@ -6,7 +6,7 @@ If a PLANS.md file is checked into the repo, follow it exactly. If it exists, re
 
 ## Purpose / Big Picture
 
-After this change, a meetup host can run one poll at a time from an admin page, choosing either a 0–10 slider or a multiple-choice poll. Slider polls show live count/average/histogram updates; multiple-choice polls show live counts per option. When the host closes the poll, results freeze and the poll is added to a history view that attendees can browse.
+After this change, a meetup host can run one poll at a time from an admin page, choosing either a 0–10 slider or a multiple-choice poll. Slider polls show live count/average/histogram updates; multiple-choice polls show live counts per option. When the host closes the poll, results freeze and the poll is added to a history view that attendees can browse. The admin page also includes a presets sidebar that reads prewritten polls from a local JSON file, allowing the host to click a preset to populate the open-poll form quickly. Preset buttons are disabled while an active poll is open to avoid accidental switching.
 
 You can see it working by starting the dev server, opening `/admin?key=...` in one browser, opening `/` in several others, opening a slider or multiple-choice poll, voting, watching live aggregates change, then closing the poll and seeing it appear in history.
 
@@ -31,6 +31,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 20:40Z) Stretch slider histogram to full container width.
 - [x] (2026-01-13 20:55Z) Remove attendee intro copy and increase histogram height.
 - [x] (2026-01-13 22:05Z) Redesign attendee and admin UI with a subtle material aesthetic, updated typography, and mobile-first layout.
+- [x] (2026-01-13 21:56Z) Add prewritten poll presets loaded from JSON with admin sidebar UI, API route, tests, and docs.
 
 ## Surprises & Discoveries
 
@@ -75,9 +76,17 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
   Rationale: Soft realism and high-quality type hierarchy improve clarity and avoid generic card-heavy styling.
   Date/Author: 2026-01-13 / assistant
 
+- Decision: Store prewritten poll presets in `data/prewritten-polls.json` and load them via an admin-only API route.
+  Rationale: A repo-local JSON file is simple to edit and deploy, while the API route keeps the admin UI decoupled from filesystem access.
+  Date/Author: 2026-01-13 / assistant
+
+- Decision: Clicking a preset populates the admin form instead of opening immediately, and preset buttons are disabled while a poll is active.
+  Rationale: This keeps the existing open/close flow intact and prevents accidental poll switches mid-session.
+  Date/Author: 2026-01-13 / assistant
+
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Redesigned attendee and admin surfaces with a warm, subtle material aesthetic, updated typography, and mobile-first layout refinements. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Redesigned attendee and admin surfaces with a warm, subtle material aesthetic, updated typography, and mobile-first layout refinements. Added prewritten poll presets via `data/prewritten-polls.json`, an admin-only presets API route, and a sidebar that populates the admin form when no poll is active. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 
@@ -91,6 +100,7 @@ Current structure (as of 2026-01-12):
 - `app/layout.tsx`, `app/globals.css`: global layout/styles and font setup.
 - No `src/` directory currently. Add shared code under `lib/` at repo root (for example `lib/pollService.ts`).
 - `package.json` scripts: `dev`, `build`, `start`, `lint`, `test`, `test:agg`.
+- Admin-only preset data will live in `data/prewritten-polls.json`, loaded by a server helper in `lib/prewrittenPolls.ts` and exposed via `app/api/admin/presets/route.ts`.
 
 Key terms used in this plan:
 
@@ -98,6 +108,7 @@ Key terms used in this plan:
 - “Vote”: The attendee’s most recent selection for the active poll, keyed by their anonymous id.
 - “Histogram”: Counts per slider value (0–10) or per multiple-choice option.
 - “KV”: Vercel KV, used as the source of truth for the active poll, votes, and history.
+- “Preset poll”: A prewritten poll definition stored in `data/prewritten-polls.json` and used to prefill the admin form.
 
 Run Logs: write logs to a local directory at:
   /tmp/run-logs
@@ -118,6 +129,7 @@ Plan update (2026-01-13 02:06Z): Removed Playwright acceptance testing from the 
 Plan update (2026-01-13 20:10Z): Added vertical histogram UI update request.
 Plan update (2026-01-13 20:40Z): Added full-width histogram layout update request.
 Plan update (2026-01-13 20:55Z): Added attendee copy removal and histogram height update request.
+Plan update (2026-01-13 23:10Z): Added prewritten poll presets (JSON source, loader, API route, admin sidebar) plus tests and acceptance criteria.
 
 Before coding, do an orientation pass:
 
@@ -315,18 +327,23 @@ Implement `app/admin/page.tsx` with:
 
 Make the admin page projector-friendly: large text for question and results.
 
-### 7) Add validation tests (minimum viable)
+### 7) Add prewritten poll presets
+
+Create a repo-local JSON file at `data/prewritten-polls.json` that lists prewritten polls. Each entry should include `id`, `type`, `question`, and `options` for multiple choice polls. Add a server helper at `lib/prewrittenPolls.ts` to load and validate the JSON, trimming whitespace and failing fast with clear errors when data is invalid or duplicate ids are detected. Expose the data via a new admin-only API route `app/api/admin/presets/route.ts` that checks `ADMIN_KEY` and returns `{ polls: PrewrittenPoll[] }`. Update the admin UI in `app/admin/AdminClient.tsx` to fetch presets, show them in a sidebar, and on click populate the question/type/options fields. Disable the preset buttons while an active poll is open and show a short hint explaining why.
+
+### 8) Add validation tests (minimum viable)
 
 Add Jest unit tests under `lib/__tests__` to cover:
 
 - slider aggregation (histogram and average)
 - multiple-choice aggregation (option counts)
 - recordVote validation for multiple-choice index bounds
+- prewritten poll parsing (valid entries, invalid types/options, duplicate ids)
 
 Update `scripts/test-agg.mjs` to include multiple-choice fixtures as a quick deterministic check alongside Jest.
 
 
-### 8) Manual end-to-end validation script
+### 9) Manual end-to-end validation script
 
 Document a manual test procedure:
 
@@ -337,24 +354,25 @@ Document a manual test procedure:
 3. Open attendees in multiple tabs:
      http://localhost:3000/
 4. Open a poll from admin (try both slider and multiple choice).
-5. For slider polls, move sliders in each attendee tab and confirm:
+5. Use a preset from the admin sidebar to populate the form, then open it and confirm the question/type/options match the preset.
+6. For slider polls, move sliders in each attendee tab and confirm:
    - count increases to number of distinct anonIds
    - average changes as expected
    - histogram bars change
-6. For multiple-choice polls, select options in each attendee tab and confirm:
+7. For multiple-choice polls, select options in each attendee tab and confirm:
    - count increases to number of distinct anonIds
    - option counts change as expected
-7. Close poll and confirm:
+8. Close poll and confirm:
    - attendee pages stop showing an active poll and show “Waiting for next poll”
    - history shows the closed poll summary (final frozen results)
-8. Open a new poll and confirm it becomes the active poll and voting resets for the new poll.
+9. Open a new poll and confirm it becomes the active poll and voting resets for the new poll.
 
 Include a short expected observation snippet, e.g.:
 
    Expected (slider): If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.
    Expected (multiple choice): If two attendees pick option A and one picks option B, counts are A=2, B=1.
 
-### 9) Vercel deploy readiness
+### 10) Vercel deploy readiness
 
 Ensure:
 - Admin routes check `process.env.ADMIN_KEY` on the server and reject mismatches.
@@ -387,6 +405,11 @@ Acceptance is met when all of the following are true:
 5. Basic aggregation correctness:
    - `npm test` passes.
    - `npm run test:agg` passes.
+
+6. Prewritten poll presets:
+   - The admin page shows a presets sidebar populated from `data/prewritten-polls.json`.
+   - Clicking a preset populates the question, type, and options fields without opening a poll automatically.
+   - Preset buttons are disabled while a poll is active and become available again after closing.
 
 
 ## Idempotence and Recovery
@@ -455,4 +478,11 @@ In `lib/pollService.ts`, define exported functions:
   - export function computeAggregates(poll: ActivePoll, votes: Record<string, string>): { count: number; avg: number | null; histogram: number[] }
   - export async function listHistory(limit: number): Promise<ClosedPollSummary[]>
 
+In `lib/prewrittenPolls.ts`, define exported functions:
+
+  - export async function loadPrewrittenPolls(): Promise<PrewrittenPoll[]>
+  - export function parsePrewrittenPolls(raw: string): PrewrittenPoll[]
+
 These signatures anchor the rest of the system and keep routes thin.
+
+Plan revision note (2026-01-13 23:10Z): Added the prewritten poll presets feature (JSON source, loader, API route, admin sidebar, tests, and validation updates) to reflect the new requirement for ahead-of-time questions and disabled preset controls while a poll is active.

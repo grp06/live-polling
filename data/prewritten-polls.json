@@ -1,0 +1,13 @@
+[
+  {
+    "id": "energy-check",
+    "type": "slider",
+    "question": "How energized is the room right now?"
+  },
+  {
+    "id": "next-topic",
+    "type": "multiple_choice",
+    "question": "Which topic should we cover next?",
+    "options": ["APIs", "Testing", "Infra"]
+  }
+]

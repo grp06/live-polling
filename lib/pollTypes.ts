@@ -36,3 +36,10 @@ export type PollState = {
   userVote: number | null;
   history: ClosedPollSummary[];
 };
+
+export type PrewrittenPoll = {
+  id: string;
+  type: PollType;
+  question: string;
+  options?: string[];
+};

@@ -28,6 +28,28 @@ Visit:
 - Attendee view: `http://localhost:3000/`
 - Admin view: `http://localhost:3000/admin?key=YOUR_ADMIN_KEY`
 
+## Prewritten poll presets
+
+Create or edit `data/prewritten-polls.json` to define polls ahead of time. The admin page loads these presets in a sidebar; click a preset to populate the form before opening a poll.
+
+Example:
+
+```
+[
+  {
+    "id": "energy-check",
+    "type": "slider",
+    "question": "How energized is the room right now?"
+  },
+  {
+    "id": "next-topic",
+    "type": "multiple_choice",
+    "question": "Which topic should we cover next?",
+    "options": ["APIs", "Testing", "Infra"]
+  }
+]
+```
+
 ## Aggregation test
 
 ```
