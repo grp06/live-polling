@@ -85,9 +85,9 @@ export default function ResultsPage() {
       <div className="pointer-events-none absolute bottom-12 left-24 h-36 w-36 -rotate-12 rounded-[36px] bg-[var(--blush)] opacity-55 animate-drift" />
       <main className="relative mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-14 md:px-10">
         <header>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
-            Projector results
-          </p>
+          <h1 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-6xl lg:text-7xl">
+            livepolls.co
+          </h1>
         </header>
 
         {error ? (
