@@ -118,14 +118,14 @@ export function PollResults({
         </div>
       </div>
       <div
-        className="mt-6 flex items-end gap-3 overflow-x-auto pb-2"
+        className="mt-6 grid w-full grid-cols-11 gap-2"
         data-orientation="vertical"
       >
         {histogram.map((value, index) => {
           const score = POLL_MIN + index;
           const height = `${Math.max(6, (value / max) * 100)}%`;
           return (
-            <div key={score} className="flex w-10 flex-col items-center gap-2">
+            <div key={score} className="flex w-full flex-col items-center gap-2">
               <span className="text-xs font-semibold text-zinc-700">
                 {value}
               </span>
