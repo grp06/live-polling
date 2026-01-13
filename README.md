@@ -40,13 +40,6 @@ npm run test:agg
 npm test
 ```
 
-## UI acceptance test
-
-```
-npx playwright install
-npm run test:e2e
-```
-
 ## Manual validation (end-to-end)
 
 1) Start the dev server:

@@ -69,7 +69,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests plus a Playwright acceptance test and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel, install Playwright browsers, and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 
@@ -106,6 +106,7 @@ Plan update (2026-01-12 22:45Z): Filled Outcomes & Retrospective with the delive
 Plan update (2026-01-13 00:20Z): Added admin clear-all flow to Progress, Decision Log, and Outcomes after user-requested reset capability.
 Plan update (2026-01-13 00:30Z): Added KV hash normalization fix after observing invalid vote parsing from array responses.
 Plan update (2026-01-13 01:49Z): Updated plan and acceptance criteria for slider vs multiple-choice poll support, including UI and test coverage changes.
+Plan update (2026-01-13 02:06Z): Removed Playwright acceptance testing from the plan per updated guidance.
 
 Before coding, do an orientation pass:
 
@@ -313,7 +314,6 @@ Add Jest unit tests under `lib/__tests__` to cover:
 
 Update `scripts/test-agg.mjs` to include multiple-choice fixtures as a quick deterministic check alongside Jest.
 
-Add a Playwright acceptance test that mocks `/api/poll` and `/api/vote` to validate the multiple-choice voting UI renders options and posts the selected index.
 
 ### 8) Manual end-to-end validation script
 
@@ -377,8 +377,6 @@ Acceptance is met when all of the following are true:
    - `npm test` passes.
    - `npm run test:agg` passes.
 
-6. UI acceptance:
-   - `npm run test:e2e` passes.
 
 ## Idempotence and Recovery
 

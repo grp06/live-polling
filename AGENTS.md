@@ -57,7 +57,6 @@ You will stay consistent across long-running development cycles using two memory
 ## Testing Requirements
 
 - Use **Jest** for unit and integration tests
-- Use **Playwright** for end-to-end and UI acceptance tests
 - Write tests BEFORE implementation (TDD approach)
 - Tests must fail initially, then pass after implementation
 - Tests should be comprehensive but focused on the functionality being built
