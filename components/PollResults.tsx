@@ -19,10 +19,19 @@ export function PollResults({
   title,
   large = false,
 }: PollResultsProps) {
+  const labelClass = large
+    ? "text-sm font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]"
+    : "text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]";
+  const voteCountClass = large ? "text-4xl" : "text-2xl";
+  const choiceTextClass = large ? "text-lg md:text-xl" : "text-sm";
+  const choiceValueClass = large ? "text-lg md:text-xl" : "text-sm";
+  const choiceBarClass = large ? "h-4" : "h-2.5";
+  const sliderValueClass = large ? "text-sm md:text-base" : "text-xs";
+  const sliderCountClass = large ? "text-sm md:text-base" : "text-xs";
   if (!pollType) {
     return (
       <section className="rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+        <p className={labelClass}>
           {title ?? "Live results"}
         </p>
         <h2 className="mt-3 text-balance font-[var(--font-display)] text-2xl text-[var(--ink)]">
@@ -44,7 +53,7 @@ export function PollResults({
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+            <p className={labelClass}>
               {title ?? "Live results"}
             </p>
           </div>
@@ -52,7 +61,9 @@ export function PollResults({
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-muted)]">
               Votes
             </p>
-            <p className="text-2xl font-semibold text-[var(--ink)]">{count}</p>
+            <p className={`font-semibold text-[var(--ink)] ${voteCountClass}`}>
+              {count}
+            </p>
           </div>
         </div>
         {options && options.length > 0 ? (
@@ -63,18 +74,24 @@ export function PollResults({
               return (
                 <div
                   key={`${option}-${index}`}
-                  className="grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_2.5rem]"
+                  className="grid items-center gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_3.5rem]"
                 >
-                  <span className="break-words text-sm font-medium text-[var(--ink)] md:pr-2">
+                  <span
+                    className={`break-words font-medium text-[var(--ink)] md:pr-2 ${choiceTextClass}`}
+                  >
                     {option}
                   </span>
-                  <div className="h-2.5 w-full rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
+                  <div
+                    className={`${choiceBarClass} w-full rounded-full border border-[var(--border)] bg-[var(--surface-muted)]`}
+                  >
                     <div
-                      className="h-2.5 rounded-full bg-[var(--accent)] transition-[width] duration-500"
+                      className={`${choiceBarClass} rounded-full bg-[var(--accent)] transition-[width] duration-500`}
                       style={{ width }}
                     />
                   </div>
-                  <span className="text-right text-sm font-semibold text-[var(--ink)]">
+                  <span
+                    className={`text-right font-semibold text-[var(--ink)] ${choiceValueClass}`}
+                  >
                     {value}
                   </span>
                 </div>
@@ -92,7 +109,7 @@ export function PollResults({
 
   const max = Math.max(1, ...histogram);
   const avgLabel = avg === null ? "—" : avg.toFixed(1);
-  const barHeightClass = large ? "h-48 md:h-64" : "h-36";
+  const barHeightClass = large ? "h-64 md:h-[28rem]" : "h-36";
 
   return (
     <section
@@ -101,7 +118,7 @@ export function PollResults({
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+          <p className={labelClass}>
             {title ?? "Live results"}
           </p>
           <h2
@@ -116,7 +133,9 @@ export function PollResults({
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-muted)]">
             Votes
           </p>
-          <p className="text-2xl font-semibold text-[var(--ink)]">{count}</p>
+          <p className={`font-semibold text-[var(--ink)] ${voteCountClass}`}>
+            {count}
+          </p>
         </div>
       </div>
       <div
@@ -128,7 +147,7 @@ export function PollResults({
           const height = `${Math.max(6, (value / max) * 100)}%`;
           return (
             <div key={score} className="flex w-full flex-col items-center gap-2">
-              <span className="text-xs font-semibold text-[var(--ink)]">
+              <span className={`font-semibold text-[var(--ink)] ${sliderCountClass}`}>
                 {value}
               </span>
               <div
@@ -139,7 +158,9 @@ export function PollResults({
                   style={{ height }}
                 />
               </div>
-              <span className="text-xs text-[var(--ink-muted)]">{score}</span>
+              <span className={`text-[var(--ink-muted)] ${sliderValueClass}`}>
+                {score}
+              </span>
             </div>
           );
         })}
