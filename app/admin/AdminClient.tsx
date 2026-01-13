@@ -307,7 +307,7 @@ export function AdminClient() {
           </div>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.65fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
             <div className="flex flex-col gap-6">
               <div className="space-y-2">
@@ -435,72 +435,70 @@ export function AdminClient() {
             title="Live results"
             large
           />
-
-          <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
-                  Preset polls
-                </p>
-                <h2 className="mt-2 text-balance font-[var(--font-display)] text-2xl text-[var(--ink)]">
-                  Prewritten questions
-                </h2>
-              </div>
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
-                {presets.length} presets
-              </span>
-            </div>
-
-            {presetsError ? (
-              <p className="mt-4 text-sm text-rose-700">{presetsError}</p>
-            ) : null}
-
-            {presets.length === 0 && !presetsError ? (
-              <p className="mt-4 text-sm text-[var(--ink-muted)]">
-                Add entries to data/prewritten-polls.json to see presets here.
-              </p>
-            ) : null}
-
-            <div className="mt-5 space-y-3">
-              {presets.map((preset) => {
-                const label =
-                  preset.type === "multiple_choice"
-                    ? "Multiple choice"
-                    : "Slider";
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    disabled={presetsDisabled || busy}
-                    onClick={() => handlePresetSelect(preset)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                      presetsDisabled || busy
-                        ? "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink-muted)] opacity-70"
-                        : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:-translate-y-0.5 hover:border-[var(--accent)]"
-                    }`}
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
-                      {label}
-                    </div>
-                    <div className="mt-2 text-base font-semibold text-[var(--ink)]">
-                      {preset.question}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="mt-4 text-xs text-[var(--ink-muted)]">
-              {presetsDisabled
-                ? "Close the active poll to load a preset."
-                : "Click a preset to populate the form."}
-            </p>
-          </section>
         </div>
 
         <div className="text-[var(--ink)]">
           <PollHistory history={history} />
         </div>
+
+        <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                Preset polls
+              </p>
+              <h2 className="mt-2 text-balance font-[var(--font-display)] text-2xl text-[var(--ink)] md:text-3xl">
+                Prewritten questions
+              </h2>
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+              {presets.length} presets
+            </span>
+          </div>
+
+          {presetsError ? (
+            <p className="mt-4 text-sm text-rose-700">{presetsError}</p>
+          ) : null}
+
+          {presets.length === 0 && !presetsError ? (
+            <p className="mt-4 text-sm text-[var(--ink-muted)]">
+              Add entries to data/prewritten-polls.json to see presets here.
+            </p>
+          ) : null}
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {presets.map((preset) => {
+              const label =
+                preset.type === "multiple_choice" ? "Multiple choice" : "Slider";
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  disabled={presetsDisabled || busy}
+                  onClick={() => handlePresetSelect(preset)}
+                  className={`w-full rounded-2xl border px-4 py-4 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                    presetsDisabled || busy
+                      ? "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink-muted)] opacity-70"
+                      : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:-translate-y-0.5 hover:border-[var(--accent)]"
+                  }`}
+                >
+                  <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                    {label}
+                  </div>
+                  <div className="mt-2 text-base font-semibold text-[var(--ink)]">
+                    {preset.question}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="mt-4 text-xs text-[var(--ink-muted)]">
+            {presetsDisabled
+              ? "Close the active poll to load a preset."
+              : "Tap a preset to populate the form."}
+          </p>
+        </section>
       </main>
     </div>
   );
