@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { PollHistory } from "@/components/PollHistory";
 import { PollResults } from "@/components/PollResults";
 import { POLL_MAX, POLL_MIN, type PollState } from "@/lib/pollTypes";
 
-const POLL_INTERVAL_MS = 750;
+const POLL_INTERVAL_MS = 1000;
 
 const emptyHistogram = () =>
   Array.from({ length: POLL_MAX - POLL_MIN + 1 }, () => 0);
@@ -27,41 +27,51 @@ export default function ResultsPage() {
     setAnonId(id);
   }, []);
 
-  useEffect(() => {
+  const loadState = useCallback(async () => {
     if (!anonId) {
       return;
     }
 
-    let cancelled = false;
-
-    const loadState = async () => {
-      try {
-        const response = await fetch(`/api/poll?anonId=${anonId}`);
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "failed to load poll state");
-        }
-        const payload = (await response.json()) as PollState;
-        if (!cancelled) {
-          setState(payload);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : "unknown error";
-          setError(message);
-        }
+    try {
+      const response = await fetch(`/api/poll?anonId=${anonId}`);
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "failed to load poll state");
       }
-    };
+      const payload = (await response.json()) as PollState;
+      setState(payload);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown error";
+      setError(message);
+    }
+  }, [anonId]);
 
+  useEffect(() => {
+    if (!anonId) {
+      return;
+    }
     loadState();
-    const timer = setInterval(loadState, POLL_INTERVAL_MS);
+  }, [anonId, loadState]);
+
+  useEffect(() => {
+    if (!anonId || !state?.poll) {
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setInterval(() => {
+      if (cancelled) {
+        return;
+      }
+      void loadState();
+    }, POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [anonId]);
+  }, [anonId, state?.poll?.id, loadState]);
 
   const histogram = state?.histogram ?? [];
   const count = state?.count ?? 0;
