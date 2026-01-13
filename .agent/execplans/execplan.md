@@ -30,6 +30,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 20:20Z) Update slider histogram UI to render vertical bars (bottom-to-top).
 - [x] (2026-01-13 20:40Z) Stretch slider histogram to full container width.
 - [x] (2026-01-13 20:55Z) Remove attendee intro copy and increase histogram height.
+- [x] (2026-01-13 22:05Z) Redesign attendee and admin UI with a subtle material aesthetic, updated typography, and mobile-first layout.
 
 ## Surprises & Discoveries
 
@@ -70,9 +71,13 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
   Rationale: Reuses existing numeric vote storage and keeps KV hash values uniform across poll types.
   Date/Author: 2026-01-13 / assistant
 
+- Decision: Use a warm, subtle material-inspired visual system with Manrope for body and Fraunces for display typography.
+  Rationale: Soft realism and high-quality type hierarchy improve clarity and avoid generic card-heavy styling.
+  Date/Author: 2026-01-13 / assistant
+
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Redesigned attendee and admin surfaces with a warm, subtle material aesthetic, updated typography, and mobile-first layout refinements. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 

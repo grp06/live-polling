@@ -171,102 +171,118 @@ export default function Home() {
   );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-white to-sky-50 text-zinc-900">
-      <div className="pointer-events-none absolute -top-20 right-0 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl animate-glow" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-sky-200/60 blur-3xl animate-glow" />
-      <main className="relative mx-auto flex max-w-5xl flex-col gap-8 px-6 py-16">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] text-[var(--ink)]">
+      <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 animate-drift" />
+      <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
+      <main className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-14 md:px-10">
+        <header className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+            Live polling
+          </p>
+          <h1 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-5xl">
+            Cast your vote with confidence.
+          </h1>
+          <p className="max-w-xl text-sm text-[var(--ink-muted)]">
+            Your response updates instantly for the room, while staying private
+            to you.
+          </p>
+        </header>
+
         {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
 
-        <section className="animate-rise rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm backdrop-blur">
-          {poll ? (
-            <div className="space-y-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                  Active poll
-                </p>
-                <h2 className="mt-2 text-balance text-3xl font-semibold text-zinc-900">
-                  {poll.question}
-                </h2>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+          <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-6 py-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-8">
+            {poll ? (
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                    Active poll
+                  </p>
+                  <h2 className="mt-3 text-balance font-[var(--font-display)] text-3xl text-[var(--ink)] md:text-4xl">
+                    {poll.question}
+                  </h2>
+                </div>
+                {poll.type === "multiple_choice" ? (
+                  <div className="space-y-3">
+                    <div className="text-sm text-[var(--ink-muted)]">
+                      Select one option
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {(poll.options ?? []).map((option, index) => {
+                        const isSelected = choiceValue === index;
+                        return (
+                          <button
+                            key={`${option}-${index}`}
+                            type="button"
+                            onClick={() => handleChoiceVote(index)}
+                            className={`rounded-2xl border px-4 py-3 text-left text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                              isSelected
+                                ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--ink)] shadow-[0_1px_0_rgba(31,26,22,0.1)]"
+                                : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:-translate-y-0.5 hover:border-[var(--accent)]"
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-[var(--ink-muted)]">
+                      <span>Move the slider</span>
+                      <span className="text-base font-semibold text-[var(--ink)]">
+                        {sliderLabel}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={POLL_MIN}
+                      max={POLL_MAX}
+                      step={1}
+                      value={sliderValue}
+                      onChange={(event) => {
+                        const nextValue = Number(event.target.value);
+                        setSliderValue(nextValue);
+                        handleSliderVote(nextValue);
+                      }}
+                      className="w-full accent-[var(--accent)]"
+                    />
+                    <div className="flex justify-between text-xs text-[var(--ink-muted)]">
+                      <span>{POLL_MIN}</span>
+                      <span>{POLL_MAX}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-              {poll.type === "multiple_choice" ? (
-                <div className="space-y-3">
-                  <div className="text-sm text-zinc-500">
-                    Select one option
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {(poll.options ?? []).map((option, index) => {
-                      const isSelected = choiceValue === index;
-                      return (
-                        <button
-                          key={`${option}-${index}`}
-                          type="button"
-                          onClick={() => handleChoiceVote(index)}
-                          className={`rounded-2xl border px-4 py-3 text-left text-base font-semibold transition ${
-                            isSelected
-                              ? "border-amber-400 bg-amber-100 text-amber-900"
-                              : "border-black/10 bg-white text-zinc-900 hover:border-amber-300"
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-zinc-500">
-                    <span>Move the slider</span>
-                    <span className="text-base font-semibold text-zinc-900">
-                      {sliderLabel}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={POLL_MIN}
-                    max={POLL_MAX}
-                    step={1}
-                    value={sliderValue}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value);
-                      setSliderValue(nextValue);
-                      handleSliderVote(nextValue);
-                    }}
-                    className="w-full accent-orange-500"
-                  />
-                  <div className="flex justify-between text-xs text-zinc-400">
-                    <span>{POLL_MIN}</span>
-                    <span>{POLL_MAX}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                No active poll
-              </p>
-              <h2 className="text-2xl font-semibold text-zinc-900">
-                Waiting for the next poll.
-              </h2>
-              <p className="text-sm text-zinc-500">
-                Stay on this tab. Results appear when the host opens a poll.
-              </p>
-            </div>
-          )}
-        </section>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                  No active poll
+                </p>
+                <h2 className="text-balance font-[var(--font-display)] text-3xl text-[var(--ink)]">
+                  The host will open a poll shortly.
+                </h2>
+                <p className="text-sm text-[var(--ink-muted)]">
+                  Keep this tab open and you will see the question as soon as it
+                  goes live.
+                </p>
+              </div>
+            )}
+          </section>
 
-        <PollResults
-          count={count}
-          avg={avg}
-          histogram={poll?.type === "slider" ? sliderHistogram : histogram}
-          pollType={poll?.type ?? null}
-          options={poll?.options}
-        />
+          <PollResults
+            count={count}
+            avg={avg}
+            histogram={poll?.type === "slider" ? sliderHistogram : histogram}
+            pollType={poll?.type ?? null}
+            options={poll?.options}
+          />
+        </div>
 
         <PollHistory history={history} />
       </main>

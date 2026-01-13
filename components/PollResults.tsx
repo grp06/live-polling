@@ -21,14 +21,14 @@ export function PollResults({
 }: PollResultsProps) {
   if (!pollType) {
     return (
-      <section className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm backdrop-blur">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+      <section className="rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
           {title ?? "Live results"}
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-zinc-900">
+        <h2 className="mt-3 text-balance font-[var(--font-display)] text-2xl text-[var(--ink)]">
           No active poll.
         </h2>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-[var(--ink-muted)]">
           Results will appear here once voting opens.
         </p>
       </section>
@@ -38,47 +38,50 @@ export function PollResults({
   if (pollType === "multiple_choice") {
     const max = Math.max(1, ...histogram);
     return (
-      <section className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <section
+        className="rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)]"
+        data-result="multiple_choice"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
               {title ?? "Live results"}
             </p>
             <h2
-              className={`text-balance font-semibold text-zinc-900 ${
+              className={`text-balance font-[var(--font-display)] text-[var(--ink)] ${
                 large ? "text-3xl md:text-5xl" : "text-2xl"
               }`}
             >
-              Responses
+              Response split
             </h2>
           </div>
-          <div className="rounded-2xl bg-zinc-900 px-4 py-2 text-white">
-            <p className="text-xs uppercase tracking-[0.2em] text-zinc-300">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-muted)]">
               Votes
             </p>
-            <p className="text-2xl font-semibold">{count}</p>
+            <p className="text-2xl font-semibold text-[var(--ink)]">{count}</p>
           </div>
         </div>
         {options && options.length > 0 ? (
           <div className="mt-6 space-y-3">
             {options.map((option, index) => {
               const value = histogram[index] ?? 0;
-              const width = `${Math.max(4, (value / max) * 100)}%`;
+              const width = `${Math.max(6, (value / max) * 100)}%`;
               return (
                 <div
                   key={`${option}-${index}`}
                   className="flex items-center gap-3"
                 >
-                  <span className="min-w-[6rem] text-sm font-medium text-zinc-600">
+                  <span className="min-w-[6rem] text-sm font-medium text-[var(--ink)]">
                     {option}
                   </span>
-                  <div className="h-3 flex-1 rounded-full bg-zinc-100">
+                  <div className="h-2.5 flex-1 rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
                     <div
-                      className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400"
+                      className="h-2.5 rounded-full bg-[var(--accent)] transition-[width] duration-500"
                       style={{ width }}
                     />
                   </div>
-                  <span className="w-8 text-right text-sm font-semibold text-zinc-700">
+                  <span className="w-8 text-right text-sm font-semibold text-[var(--ink)]">
                     {value}
                   </span>
                 </div>
@@ -86,7 +89,9 @@ export function PollResults({
             })}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-zinc-500">No options configured.</p>
+          <p className="mt-4 text-sm text-[var(--ink-muted)]">
+            No options configured.
+          </p>
         )}
       </section>
     );
@@ -94,27 +99,31 @@ export function PollResults({
 
   const max = Math.max(1, ...histogram);
   const avgLabel = avg === null ? "—" : avg.toFixed(1);
+  const barHeightClass = large ? "h-48 md:h-64" : "h-36";
 
   return (
-    <section className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm backdrop-blur">
+    <section
+      className="rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)]"
+      data-result="slider"
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
             {title ?? "Live results"}
           </p>
           <h2
-            className={`text-balance font-semibold text-zinc-900 ${
+            className={`text-balance font-[var(--font-display)] text-[var(--ink)] ${
               large ? "text-3xl md:text-5xl" : "text-2xl"
             }`}
           >
             Average {avgLabel}
           </h2>
         </div>
-        <div className="rounded-2xl bg-zinc-900 px-4 py-2 text-white">
-          <p className="text-xs uppercase tracking-[0.2em] text-zinc-300">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-muted)]">
             Votes
           </p>
-          <p className="text-2xl font-semibold">{count}</p>
+          <p className="text-2xl font-semibold text-[var(--ink)]">{count}</p>
         </div>
       </div>
       <div
@@ -126,21 +135,23 @@ export function PollResults({
           const height = `${Math.max(6, (value / max) * 100)}%`;
           return (
             <div key={score} className="flex w-full flex-col items-center gap-2">
-              <span className="text-xs font-semibold text-zinc-700">
+              <span className="text-xs font-semibold text-[var(--ink)]">
                 {value}
               </span>
-              <div className="flex h-40 w-full items-end rounded-2xl bg-zinc-100/80 px-1">
+              <div
+                className={`flex w-full items-end rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-1 ${barHeightClass}`}
+              >
                 <div
-                  className="w-full rounded-xl bg-gradient-to-t from-amber-400 via-orange-400 to-rose-400"
+                  className="w-full rounded-xl bg-[var(--accent)] transition-[height] duration-500"
                   style={{ height }}
                 />
               </div>
-              <span className="text-xs text-zinc-500">{score}</span>
+              <span className="text-xs text-[var(--ink-muted)]">{score}</span>
             </div>
           );
         })}
       </div>
-      <p className="mt-4 text-xs text-zinc-500">
+      <p className="mt-4 text-xs text-[var(--ink-muted)]">
         Scale {POLL_MIN} to {POLL_MAX}
       </p>
     </section>

@@ -194,65 +194,73 @@ export function AdminClient() {
 
   if (!adminKey) {
     return (
-      <div className="min-h-screen bg-zinc-950 px-6 py-20 text-white">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-400">
-            Admin
+      <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] text-[var(--ink)]">
+        <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 animate-drift" />
+        <main className="relative mx-auto max-w-3xl space-y-4 px-6 py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--ink-muted)]">
+            Admin studio
           </p>
-          <h1 className="text-3xl font-semibold">Admin key required.</h1>
-          <p className="text-zinc-400">
+          <h1 className="text-balance font-[var(--font-display)] text-3xl text-[var(--ink)]">
+            Admin key required.
+          </h1>
+          <p className="text-[var(--ink-muted)]">
             Add <span className="font-semibold">?key=YOUR_ADMIN_KEY</span>.
           </p>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] text-[var(--ink)]">
+      <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 animate-drift" />
+      <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
+      <main className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-14 md:px-10">
         <header className="animate-rise space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-400">
-            Admin
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--ink-muted)]">
+            Admin studio
           </p>
-          <h1 className="text-balance text-4xl font-semibold md:text-6xl">
+          <h1 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-5xl">
             {statusLabel}
           </h1>
-          <p className="max-w-2xl text-zinc-400">
-            Open or close polls. Results update live for attendees.
+          <p className="max-w-2xl text-sm text-[var(--ink-muted)]">
+            Open, close, and reset polls while attendees watch live updates.
           </p>
         </header>
 
         {error ? (
-          <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
 
-        <section className="animate-rise rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="flex-1 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
-                New poll question
-              </p>
-              <input
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder="How energized is the room right now?"
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-400/70"
-              />
-              <div className="mt-4 space-y-2 text-sm text-zinc-300">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
+            <div className="flex flex-col gap-6">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
+                  New poll question
+                </p>
+                <input
+                  value={question}
+                  onChange={(event) => setQuestion(event.target.value)}
+                  placeholder="How energized is the room right now?"
+                  className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-base text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
                   Poll type
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
                     onClick={() => setPollType("slider")}
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
                       pollType === "slider"
-                        ? "border-amber-400 bg-amber-400 text-zinc-900"
-                        : "border-white/20 text-white hover:border-white/50"
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--ink)]"
+                        : "border-[var(--border)] text-[var(--ink)] hover:border-[var(--accent)]"
                     }`}
                   >
                     Slider
@@ -260,19 +268,20 @@ export function AdminClient() {
                   <button
                     type="button"
                     onClick={() => setPollType("multiple_choice")}
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
                       pollType === "multiple_choice"
-                        ? "border-amber-400 bg-amber-400 text-zinc-900"
-                        : "border-white/20 text-white hover:border-white/50"
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--ink)]"
+                        : "border-[var(--border)] text-[var(--ink)] hover:border-[var(--accent)]"
                     }`}
                   >
                     Multiple choice
                   </button>
                 </div>
               </div>
+
               {pollType === "multiple_choice" ? (
-                <div className="mt-4 space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
                     Options
                   </p>
                   <div className="space-y-2">
@@ -289,7 +298,7 @@ export function AdminClient() {
                             setOptions(next);
                           }}
                           placeholder={`Option ${index + 1}`}
-                          className="flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-400/70"
+                          className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                         />
                         {options.length > 2 ? (
                           <button
@@ -297,7 +306,7 @@ export function AdminClient() {
                             onClick={() =>
                               setOptions(options.filter((_, i) => i !== index))
                             }
-                            className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:border-white/40"
+                            className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--ink-muted)] hover:border-[var(--accent)]"
                           >
                             Remove
                           </button>
@@ -308,53 +317,54 @@ export function AdminClient() {
                   <button
                     type="button"
                     onClick={() => setOptions([...options, ""])}
-                    className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:border-white/50"
+                    className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ink)] transition hover:border-[var(--accent)]"
                   >
                     Add option
                   </button>
                 </div>
               ) : null}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleOpen}
-                disabled={busy}
-                className="rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-amber-300 disabled:opacity-60"
-              >
-                Open poll
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={busy}
-                className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 disabled:opacity-60"
-              >
-                Close poll
-              </button>
-              <button
-                type="button"
-                onClick={handleClearAll}
-                disabled={busy}
-                className="rounded-full border border-rose-400/60 px-6 py-3 text-sm font-semibold text-rose-100 transition hover:border-rose-300 disabled:opacity-60"
-              >
-                Clear all polls
-              </button>
-            </div>
-          </div>
-        </section>
 
-        <PollResults
-          count={count}
-          avg={avg}
-          histogram={resultsHistogram}
-          pollType={poll?.type ?? null}
-          options={poll?.options}
-          title="Live results"
-          large
-        />
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpen}
+                  disabled={busy}
+                  className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-strong)] disabled:opacity-60"
+                >
+                  Open poll
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={busy}
+                  className="rounded-full border border-[var(--border)] px-6 py-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--accent)] disabled:opacity-60"
+                >
+                  Close poll
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  disabled={busy}
+                  className="rounded-full border border-[#c97b6a] bg-[#f8e9e5] px-6 py-3 text-sm font-semibold text-[#a14a3b] transition hover:border-[#b56555] disabled:opacity-60"
+                >
+                  Clear all polls
+                </button>
+              </div>
+            </div>
+          </section>
 
-        <div className="text-zinc-200">
+          <PollResults
+            count={count}
+            avg={avg}
+            histogram={resultsHistogram}
+            pollType={poll?.type ?? null}
+            options={poll?.options}
+            title="Live results"
+            large
+          />
+        </div>
+
+        <div className="text-[var(--ink)]">
           <PollHistory history={history} />
         </div>
       </main>

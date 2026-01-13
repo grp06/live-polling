@@ -16,8 +16,8 @@ describe("PollResults", () => {
       })
     );
 
+    expect(html).toContain("data-result=\"slider\"");
     expect(html).toContain("data-orientation=\"vertical\"");
-    expect(html).toContain("bg-gradient-to-t");
     expect(html).toContain("grid-cols-11");
   });
 });
