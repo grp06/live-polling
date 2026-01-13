@@ -150,15 +150,11 @@ export default function Home() {
       <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-sky-200/60 blur-3xl animate-glow" />
       <main className="relative mx-auto flex max-w-5xl flex-col gap-8 px-6 py-16">
         <header className="animate-rise space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-            Live slider poll
-          </p>
           <h1 className="text-balance text-4xl font-semibold text-zinc-900 md:text-5xl">
-            Vote anonymously and watch the room average update in real time.
+            Vote anonymously. Results update live.
           </h1>
           <p className="max-w-2xl text-lg text-zinc-600">
-            Move the slider to cast your vote. Results refresh automatically
-            while the poll is open.
+            Move the slider to vote. Updates refresh automatically.
           </p>
         </header>
 
@@ -211,11 +207,10 @@ export default function Home() {
                 No active poll
               </p>
               <h2 className="text-2xl font-semibold text-zinc-900">
-                Waiting for the next poll to start.
+                Waiting for the next poll.
               </h2>
               <p className="text-sm text-zinc-500">
-                Keep this tab open. Results will appear as soon as the host opens
-                a poll.
+                Stay on this tab. Results appear when the host opens a poll.
               </p>
             </div>
           )}

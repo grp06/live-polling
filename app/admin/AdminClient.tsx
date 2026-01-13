@@ -172,12 +172,11 @@ export function AdminClient() {
       <div className="min-h-screen bg-zinc-950 px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-400">
-            Admin console
+            Admin
           </p>
-          <h1 className="text-3xl font-semibold">Missing admin key.</h1>
+          <h1 className="text-3xl font-semibold">Admin key required.</h1>
           <p className="text-zinc-400">
-            Append <span className="font-semibold">?key=YOUR_ADMIN_KEY</span>
-            to the URL.
+            Add <span className="font-semibold">?key=YOUR_ADMIN_KEY</span>.
           </p>
         </div>
       </div>
@@ -189,14 +188,13 @@ export function AdminClient() {
       <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16">
         <header className="animate-rise space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-400">
-            Admin console
+            Admin
           </p>
           <h1 className="text-balance text-4xl font-semibold md:text-6xl">
             {statusLabel}
           </h1>
           <p className="max-w-2xl text-zinc-400">
-            Open or close the live poll. Results update continuously across all
-            attendee screens.
+            Open or close polls. Results update live for attendees.
           </p>
         </header>
 
