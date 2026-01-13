@@ -47,13 +47,6 @@ export function PollResults({
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
               {title ?? "Live results"}
             </p>
-            <h2
-              className={`text-balance font-[var(--font-display)] text-[var(--ink)] ${
-                large ? "text-3xl md:text-5xl" : "text-2xl"
-              }`}
-            >
-              Response split
-            </h2>
           </div>
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-muted)]">
