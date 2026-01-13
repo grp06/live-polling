@@ -144,9 +144,6 @@ export function PollResults({
           );
         })}
       </div>
-      <p className="mt-4 text-xs text-[var(--ink-muted)]">
-        Scale {POLL_MIN} to {POLL_MAX}
-      </p>
     </section>
   );
 }
