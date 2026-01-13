@@ -33,6 +33,8 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 22:05Z) Redesign attendee and admin UI with a subtle material aesthetic, updated typography, and mobile-first layout.
 - [x] (2026-01-13 21:56Z) Add prewritten poll presets loaded from JSON with admin sidebar UI, API route, tests, and docs.
 - [x] (2026-01-13 22:10Z) Add projector-only `/results` route and adjust attendee layout to full-width cards; remove extra voting hint text and ensure multiple-choice bars stay consistent width.
+- [x] (2026-01-13 23:24Z) Align slider thumb with track using explicit sizing to keep the 40px control centered on mobile.
+- [x] (2026-01-13 23:31Z) Prevent slider drag from panning the page by restricting touch gestures on the range input.
 
 ## Surprises & Discoveries
 
@@ -87,6 +89,14 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 
 - Decision: Add a dedicated `/results` route that mirrors attendee visuals without voting controls and use a single-column layout for full-width cards on desktop.
   Rationale: Projector mode needs large, uncluttered results and active poll display without interaction UI.
+  Date/Author: 2026-01-13 / assistant
+
+- Decision: Use explicit slider thumb and track sizing variables to keep the 40px thumb aligned with the track on mobile.
+  Rationale: Explicit sizing removes browser differences and keeps the touch target centered over the track.
+  Date/Author: 2026-01-13 / assistant
+
+- Decision: Set `touch-action: pan-y` on the slider input to prevent horizontal drag from panning the page while preserving vertical scrolling.
+  Rationale: The range input handles horizontal drag; limiting touch gestures stops page drift during slider interaction.
   Date/Author: 2026-01-13 / assistant
 
 ## Outcomes & Retrospective
@@ -493,3 +503,5 @@ These signatures anchor the rest of the system and keep routes thin.
 
 Plan revision note (2026-01-13 23:10Z): Added the prewritten poll presets feature (JSON source, loader, API route, admin sidebar, tests, and validation updates) to reflect the new requirement for ahead-of-time questions and disabled preset controls while a poll is active.
 Plan revision note (2026-01-13 22:10Z): Added the projector-only `/results` route, full-width layout adjustments, and multiple-choice bar width normalization to reflect the projector display requirements.
+Plan revision note (2026-01-13 23:24Z): Recorded the slider thumb alignment CSS update in Progress and Decision Log to address mobile track alignment.
+Plan revision note (2026-01-13 23:31Z): Logged the slider touch-action update to prevent page drag while adjusting the range input.

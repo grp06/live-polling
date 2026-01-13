@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { POLL_MAX, POLL_MIN, type PollState } from "@/lib/pollTypes";
 
+const POLL_INTERVAL_MS = 1000;
 const VOTE_THROTTLE_MS = 200;
 const DEFAULT_SLIDER = 5;
 
@@ -61,6 +62,33 @@ export default function Home() {
       cancelled = true;
     };
   }, [anonId]);
+
+  useEffect(() => {
+    if (!anonId || state?.poll) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      void fetch(`/api/poll?anonId=${anonId}`)
+        .then(async (response) => {
+          if (!response.ok) {
+            const payload = (await response.json()) as { error?: string };
+            throw new Error(payload.error ?? "failed to load poll state");
+          }
+          return (await response.json()) as PollState;
+        })
+        .then((payload) => {
+          setState(payload);
+          setError(null);
+        })
+        .catch((err) => {
+          const message = err instanceof Error ? err.message : "unknown error";
+          setError(message);
+        });
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(timer);
+  }, [anonId, state?.poll]);
 
   useEffect(() => {
     if (!state?.poll) {
@@ -230,7 +258,7 @@ export default function Home() {
                         setSliderValue(nextValue);
                         handleSliderVote(nextValue);
                       }}
-                      className="w-full accent-[var(--accent)]"
+                      className="slider-control w-full accent-[var(--accent)]"
                     />
                     <div className="flex justify-between text-xs text-[var(--ink-muted)]">
                       <span>{POLL_MIN}</span>
@@ -248,7 +276,7 @@ export default function Home() {
                   The host will open a poll shortly.
                 </h2>
                 <p className="text-sm text-[var(--ink-muted)]">
-                  Refresh this page to check for new polls.
+                  Waiting for the next poll to begin.
                 </p>
               </div>
             )}
