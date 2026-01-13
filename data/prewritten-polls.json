@@ -1,13 +1,49 @@
 [
   {
-    "id": "energy-check",
+    "id": "codex-experience",
     "type": "slider",
-    "question": "How energized is the room right now?"
+    "question": "What's your level of experience with Codex? (0 - none, 10 - expert)"
   },
   {
-    "id": "next-topic",
+    "id": "ai-impact",
     "type": "multiple_choice",
-    "question": "Which topic should we cover next?",
-    "options": ["APIs", "Testing", "Infra"]
+    "question": "AI will mostly",
+    "options": [
+      "replace me",
+      "augment me",
+      "force me to change roles",
+      "create better work",
+      "not sure"
+    ]
+  },
+  {
+    "id": "ai-risk",
+    "type": "multiple_choice",
+    "question": "The biggest risk with AI is",
+    "options": [
+      "Misaligned agents",
+      "Economic displacement",
+      "Centralization of power",
+      "Security misuse",
+      "We're over-reacting"
+    ]
+  },
+  {
+    "id": "codex-struggles",
+    "type": "multiple_choice",
+    "question": "What do you struggle with most using Codex?",
+    "options": [
+      "Understanding large codebases",
+      "Long-horizon tasks",
+      "Tests / evals",
+      "Safety / confidence",
+      "Tooling friction"
+    ]
+  },
+  {
+    "id": "next-time-more",
+    "type": "multiple_choice",
+    "question": "What do you want _more_ of next time?",
+    "options": ["Demos", "Deep dives", "Networking", "Debates"]
   }
 ]
