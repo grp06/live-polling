@@ -117,24 +117,25 @@ export function PollResults({
           <p className="text-2xl font-semibold">{count}</p>
         </div>
       </div>
-      <div className="mt-6 space-y-3">
+      <div
+        className="mt-6 flex items-end gap-3 overflow-x-auto pb-2"
+        data-orientation="vertical"
+      >
         {histogram.map((value, index) => {
           const score = POLL_MIN + index;
-          const width = `${Math.max(4, (value / max) * 100)}%`;
+          const height = `${Math.max(6, (value / max) * 100)}%`;
           return (
-            <div key={score} className="flex items-center gap-3">
-              <span className="w-6 text-sm font-medium text-zinc-500">
-                {score}
-              </span>
-              <div className="h-3 flex-1 rounded-full bg-zinc-100">
-                <div
-                  className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400"
-                  style={{ width }}
-                />
-              </div>
-              <span className="w-8 text-right text-sm font-semibold text-zinc-700">
+            <div key={score} className="flex w-10 flex-col items-center gap-2">
+              <span className="text-xs font-semibold text-zinc-700">
                 {value}
               </span>
+              <div className="flex h-32 w-full items-end rounded-2xl bg-zinc-100/80 px-1">
+                <div
+                  className="w-full rounded-xl bg-gradient-to-t from-amber-400 via-orange-400 to-rose-400"
+                  style={{ height }}
+                />
+              </div>
+              <span className="text-xs text-zinc-500">{score}</span>
             </div>
           );
         })}
