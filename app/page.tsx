@@ -2,16 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { PollHistory } from "@/components/PollHistory";
-import { PollResults } from "@/components/PollResults";
 import { POLL_MAX, POLL_MIN, type PollState } from "@/lib/pollTypes";
 
-const POLL_INTERVAL_MS = 750;
 const VOTE_THROTTLE_MS = 200;
 const DEFAULT_SLIDER = 5;
-
-const emptyHistogram = () =>
-  Array.from({ length: POLL_MAX - POLL_MIN + 1 }, () => 0);
 
 export default function Home() {
   const [anonId, setAnonId] = useState<string | null>(null);
@@ -62,11 +56,9 @@ export default function Home() {
     };
 
     loadState();
-    const timer = setInterval(loadState, POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
-      clearInterval(timer);
     };
   }, [anonId]);
 
@@ -101,15 +93,7 @@ export default function Home() {
     }
   }, [state?.poll, state?.userVote]);
 
-  const histogram = state?.histogram ?? [];
-  const count = state?.count ?? 0;
-  const avg = state?.avg ?? null;
-  const history = state?.history ?? [];
   const poll = state?.poll ?? null;
-  const sliderHistogram =
-    poll?.type === "slider" && histogram.length === 0
-      ? emptyHistogram()
-      : histogram;
 
   const submitVote = async (value: number) => {
     if (!poll || !anonId) {
@@ -264,23 +248,12 @@ export default function Home() {
                   The host will open a poll shortly.
                 </h2>
                 <p className="text-sm text-[var(--ink-muted)]">
-                  Keep this tab open and you will see the question as soon as it
-                  goes live.
+                  Refresh this page to check for new polls.
                 </p>
               </div>
             )}
           </section>
-
-          <PollResults
-            count={count}
-            avg={avg}
-            histogram={poll?.type === "slider" ? sliderHistogram : histogram}
-            pollType={poll?.type ?? null}
-            options={poll?.options}
-          />
         </div>
-
-        <PollHistory history={history} />
       </main>
     </div>
   );

@@ -3,11 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { PollHistory } from "@/components/PollHistory";
-import { PollResults } from "@/components/PollResults";
 import { type PollState, type PrewrittenPoll } from "@/lib/pollTypes";
-
-const POLL_INTERVAL_MS = 750;
 
 export function AdminClient() {
   const searchParams = useSearchParams();
@@ -106,19 +102,9 @@ export function AdminClient() {
       return;
     }
     loadState();
-    const timer = setInterval(loadState, POLL_INTERVAL_MS);
-    return () => clearInterval(timer);
   }, [anonId, loadState]);
 
   const poll = state?.poll ?? null;
-  const histogram = state?.histogram ?? [];
-  const count = state?.count ?? 0;
-  const avg = state?.avg ?? null;
-  const history = state?.history ?? [];
-  const resultsHistogram =
-    poll?.type === "slider" && histogram.length === 0
-      ? Array(11).fill(0)
-      : histogram;
 
   const handleOpen = async () => {
     if (!adminKey) {
@@ -307,7 +293,7 @@ export function AdminClient() {
           </div>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
             <div className="flex flex-col gap-6">
               <div className="space-y-2">
@@ -425,20 +411,6 @@ export function AdminClient() {
               </div>
             </div>
           </section>
-
-          <PollResults
-            count={count}
-            avg={avg}
-            histogram={resultsHistogram}
-            pollType={poll?.type ?? null}
-            options={poll?.options}
-            title="Live results"
-            large
-          />
-        </div>
-
-        <div className="text-[var(--ink)]">
-          <PollHistory history={history} />
         </div>
 
         <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
