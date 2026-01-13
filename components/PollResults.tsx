@@ -8,6 +8,7 @@ type PollResultsProps = {
   options?: string[];
   title?: string;
   large?: boolean;
+  compact?: boolean;
 };
 
 export function PollResults({
@@ -18,6 +19,7 @@ export function PollResults({
   options,
   title,
   large = false,
+  compact = false,
 }: PollResultsProps) {
   const labelClass = large
     ? "text-sm font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]"
@@ -46,6 +48,9 @@ export function PollResults({
 
   if (pollType === "multiple_choice") {
     const max = Math.max(1, ...histogram);
+    const total = histogram.reduce((sum, value) => sum + value, 0);
+    const leaderIndex = histogram.findIndex((value) => value === max);
+    const lowVotes = count < 3;
     return (
       <section
         className="rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)]"
@@ -67,33 +72,60 @@ export function PollResults({
           </div>
         </div>
         {options && options.length > 0 ? (
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 space-y-4">
             {options.map((option, index) => {
               const value = histogram[index] ?? 0;
-              const width = `${Math.max(6, (value / max) * 100)}%`;
+              const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+              const width =
+                value === 0 ? "0%" : `${Math.max(2, (value / max) * 100)}%`;
+              const isLeader = index === leaderIndex && max > 0;
               return (
                 <div
                   key={`${option}-${index}`}
-                  className="grid items-center gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_3.5rem]"
+                  className={`grid items-center gap-4 rounded-2xl px-3 py-2 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_5rem] ${
+                    index % 2 === 0 ? "bg-[rgba(31,26,22,0.03)]" : ""
+                  } ${isLeader ? "ring-1 ring-[var(--accent-soft)]" : ""}`}
                 >
-                  <span
-                    className={`break-words font-medium text-[var(--ink)] md:pr-2 ${choiceTextClass}`}
-                  >
-                    {option}
-                  </span>
+                  <div className="flex flex-col gap-1 md:pr-2">
+                    <span
+                      className={`break-words ${
+                        isLeader
+                          ? "font-semibold text-[var(--ink)]"
+                          : "font-medium text-[var(--ink-muted)]"
+                      } ${isLeader ? "text-xl md:text-2xl" : choiceTextClass}`}
+                    >
+                      {option}
+                    </span>
+                  </div>
                   <div
-                    className={`${choiceBarClass} w-full rounded-full border border-[var(--border)] bg-[var(--surface-muted)]`}
+                    className={`${choiceBarClass} w-full rounded-full border border-[var(--border)] bg-[var(--surface-muted)] ${
+                      lowVotes ? "opacity-60" : ""
+                    } ${isLeader ? "shadow-[0_0_0_6px_rgba(218,122,60,0.14)]" : ""}`}
                   >
                     <div
-                      className={`${choiceBarClass} rounded-full bg-[var(--accent)] transition-[width] duration-500`}
+                      className={`${choiceBarClass} rounded-full bg-[var(--accent)] transition-[width] duration-500 ${
+                        isLeader ? "" : "opacity-70"
+                      }`}
                       style={{ width }}
                     />
                   </div>
-                  <span
-                    className={`text-right font-semibold text-[var(--ink)] ${choiceValueClass}`}
-                  >
-                    {value}
-                  </span>
+                  <div className="text-right">
+                    <span
+                      className={`font-semibold text-[var(--ink)] ${
+                        isLeader ? "text-xl md:text-2xl" : choiceValueClass
+                      }`}
+                    >
+                      {percent}%
+                    </span>
+                    <span
+                      className={`block text-xs text-[var(--ink-muted)] ${
+                        isLeader ? "text-sm" : ""
+                      }`}
+                      title={`${value} vote${value === 1 ? "" : "s"}`}
+                    >
+                      {value} vote{value === 1 ? "" : "s"}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -109,7 +141,11 @@ export function PollResults({
 
   const max = Math.max(1, ...histogram);
   const avgLabel = avg === null ? "—" : avg.toFixed(1);
-  const barHeightClass = large ? "h-64 md:h-[28rem]" : "h-36";
+  const barHeightClass = large
+    ? compact
+      ? "h-48 md:h-[20rem]"
+      : "h-72 md:h-[32rem]"
+    : "h-40";
 
   return (
     <section
@@ -123,7 +159,7 @@ export function PollResults({
           </p>
           <h2
             className={`text-balance font-[var(--font-display)] text-[var(--ink)] ${
-              large ? "text-3xl md:text-5xl" : "text-2xl"
+              large ? (compact ? "text-2xl md:text-4xl" : "text-3xl md:text-5xl") : "text-2xl"
             }`}
           >
             Average {avgLabel}

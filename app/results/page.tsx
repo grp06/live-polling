@@ -83,9 +83,9 @@ export default function ResultsPage() {
       <div className="pointer-events-none absolute bottom-24 right-24 h-32 w-32 rotate-6 rounded-[32px] bg-[var(--sage)] opacity-50 animate-drift" />
       <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
       <div className="pointer-events-none absolute bottom-12 left-24 h-36 w-36 -rotate-12 rounded-[36px] bg-[var(--blush)] opacity-55 animate-drift" />
-      <main className="relative mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-14 md:px-10">
-        <section className="flex min-h-screen items-start pt-12 md:pt-16">
-          <h1 className="text-balance font-[var(--font-display)] text-5xl text-[var(--ink)] md:text-7xl lg:text-8xl">
+      <main className="relative mx-auto flex w-full max-w-none flex-col gap-6 px-6 py-4 md:px-10 md:py-6">
+        <section className="flex items-start pt-2 md:pt-3">
+          <h1 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-6xl lg:text-7xl">
             livepolls.co
           </h1>
         </section>
@@ -96,14 +96,14 @@ export default function ResultsPage() {
           </div>
         ) : null}
 
-        <section className="flex min-h-screen items-start pt-12 md:pt-16">
-          <div className="w-full animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-6 py-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-10 md:py-10">
+        <section className="flex items-start pt-3 md:pt-4">
+          <div className="w-full animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-5 py-5 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-8 md:py-8">
             {poll ? (
               <div className="space-y-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
                   Active poll
                 </p>
-                <h2 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-6xl lg:text-7xl">
+                <h2 className="text-balance font-[var(--font-display)] text-2xl text-[var(--ink)] md:text-4xl lg:text-5xl">
                   {poll.question}
                 </h2>
               </div>
@@ -112,7 +112,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
                   No active poll
                 </p>
-                <h2 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-6xl lg:text-7xl">
+                <h2 className="text-balance font-[var(--font-display)] text-2xl text-[var(--ink)] md:text-4xl lg:text-5xl">
                   Waiting for the next poll.
                 </h2>
               </div>
@@ -120,17 +120,18 @@ export default function ResultsPage() {
           </div>
         </section>
 
-        <section className="flex min-h-screen items-center">
+        <section className="flex items-start">
           <div className="w-full">
-            <PollResults
-              count={count}
-              avg={avg}
-              histogram={poll?.type === "slider" ? sliderHistogram : histogram}
-              pollType={poll?.type ?? null}
-              options={poll?.options}
-              title="Live results"
-              large
-            />
+              <PollResults
+                count={count}
+                avg={avg}
+                histogram={poll?.type === "slider" ? sliderHistogram : histogram}
+                pollType={poll?.type ?? null}
+                options={poll?.options}
+                title="Live results"
+                large
+                compact
+              />
           </div>
         </section>
 
