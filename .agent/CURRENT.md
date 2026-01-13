@@ -1,7 +1,7 @@
 Active execplan path: .agent/execplans/execplan.md
-Last known failing tests summary: not run after projector sizing/layout changes
+Last known failing tests summary: not run after /results spacing tweak
 Next actions:
-1) Share summary with the user.
-2) Await follow-up adjustments.
-3) Optionally run npm test if you want verification for UI changes.
+1) Commit the /results spacing tweak and journal entry.
+2) Share summary with the user.
+3) Await follow-up adjustments.
 Temporary constraints: keep KV interactions mocked in tests; avoid destructive actions.

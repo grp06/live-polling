@@ -84,7 +84,7 @@ export default function ResultsPage() {
       <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
       <div className="pointer-events-none absolute bottom-12 left-24 h-36 w-36 -rotate-12 rounded-[36px] bg-[var(--blush)] opacity-55 animate-drift" />
       <main className="relative mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-14 md:px-10">
-        <section className="flex min-h-screen items-center">
+        <section className="flex min-h-screen items-start pt-12 md:pt-16">
           <h1 className="text-balance font-[var(--font-display)] text-5xl text-[var(--ink)] md:text-7xl lg:text-8xl">
             livepolls.co
           </h1>
@@ -96,7 +96,7 @@ export default function ResultsPage() {
           </div>
         ) : null}
 
-        <section className="flex min-h-screen items-center">
+        <section className="flex min-h-screen items-start pt-12 md:pt-16">
           <div className="w-full animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-6 py-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-10 md:py-10">
             {poll ? (
               <div className="space-y-6">
