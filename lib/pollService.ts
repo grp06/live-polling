@@ -72,6 +72,15 @@ export async function closePoll(): Promise<ClosedPollSummary | null> {
   return summary;
 }
 
+export async function clearAllPolls(): Promise<void> {
+  const poll = await kvGetJson<ActivePoll>(KEY_ACTIVE);
+  await kvDel(KEY_ACTIVE);
+  await kvDel(KEY_HISTORY);
+  if (poll) {
+    await kvDel(keyVotes(poll.id));
+  }
+}
+
 export async function listHistory(
   limit: number
 ): Promise<ClosedPollSummary[]> {

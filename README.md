@@ -65,7 +65,9 @@ http://localhost:3000/
 - attendee pages show “Waiting for the next poll”
 - the closed poll summary appears in history
 
-7) Open a new poll and confirm voting resets for the new poll.
+7) Use “Clear all polls” to remove the active poll and history.
+
+8) Open a new poll and confirm voting resets for the new poll.
 
 Expected example:
 If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.

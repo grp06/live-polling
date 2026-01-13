@@ -129,6 +129,37 @@ export default function AdminPage() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (!adminKey) {
+      setError("Missing admin key.");
+      return;
+    }
+    if (!window.confirm("Clear all polls and history? This cannot be undone.")) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch("/api/admin/clear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key: adminKey }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "failed to clear polls");
+      }
+      await loadState();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown error";
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const statusLabel = useMemo(() => {
     if (!poll) {
       return "No active poll";
@@ -204,6 +235,14 @@ export default function AdminPage() {
                 className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/60 disabled:opacity-60"
               >
                 Close poll
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                disabled={busy}
+                className="rounded-full border border-rose-400/60 px-6 py-3 text-sm font-semibold text-rose-100 transition hover:border-rose-300 disabled:opacity-60"
+              >
+                Clear all polls
               </button>
             </div>
           </div>

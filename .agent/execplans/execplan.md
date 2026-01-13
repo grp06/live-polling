@@ -20,6 +20,8 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-12 22:43Z) Implement admin UI at `/admin` with key-gated controls and projector-friendly results.
 - [x] (2026-01-12 22:43Z) Add a deterministic aggregation unit test via a Node script, plus manual e2e validation script.
 - [x] (2026-01-12 22:44Z) Verify Vercel deployment behavior and document exact env vars and steps (documented env vars and confirmed code uses KV/env checks; deployment not executed here).
+- [x] (2026-01-13 00:20Z) Add admin “clear all polls” flow to remove active poll, its votes, and history.
+- [x] (2026-01-13 00:30Z) Normalize KV hash reads to handle array responses and prevent invalid vote parsing.
 
 ## Surprises & Discoveries
 
@@ -48,9 +50,17 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
   Rationale: The repo is TypeScript-only; `tsx` enables importing `lib/pollService.ts` from `scripts/test-agg.mjs` without adding a full test runner.
   Date/Author: 2026-01-12 / assistant
 
+- Decision: Implement a dedicated admin API route to clear all polls.
+  Rationale: A single explicit endpoint with server-side key validation keeps destructive actions scoped and traceable.
+  Date/Author: 2026-01-13 / assistant
+
+- Decision: Normalize KV hgetall arrays to objects in the KV wrapper.
+  Rationale: Upstash KV can return array pairs; converting ensures computeAggregates only receives vote values.
+  Date/Author: 2026-01-13 / assistant
+
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime slider poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history. Added a deterministic aggregation test script and documented manual validation plus required environment variables. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime slider poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history. Added a deterministic aggregation test script and documented manual validation plus required environment variables. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 
@@ -84,6 +94,8 @@ Plan update (2026-01-12 22:39Z): Marked API routes complete after implementing p
 Plan update (2026-01-12 22:43Z): Marked attendee/admin UI and validation docs complete; noted README now documents env vars with Vercel verification still pending.
 Plan update (2026-01-12 22:44Z): Marked Vercel readiness task complete after documenting env vars and verifying server-side checks by inspection.
 Plan update (2026-01-12 22:45Z): Filled Outcomes & Retrospective with the delivered scope and remaining deployment validation.
+Plan update (2026-01-13 00:20Z): Added admin clear-all flow to Progress, Decision Log, and Outcomes after user-requested reset capability.
+Plan update (2026-01-13 00:30Z): Added KV hash normalization fix after observing invalid vote parsing from array responses.
 
 Before coding, do an orientation pass:
 

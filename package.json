@@ -7,22 +7,28 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "jest",
     "test:agg": "node --import tsx scripts/test-agg.mjs"
   },
   "dependencies": {
+    "@upstash/redis": "^1.36.1",
     "@vercel/kv": "^3.0.0",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "redis": "^5.10.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/jest": "^29.5.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "jest": "^29.7.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.2.6",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }
