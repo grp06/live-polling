@@ -175,15 +175,6 @@ export default function Home() {
       <div className="pointer-events-none absolute -top-20 right-0 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl animate-glow" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-sky-200/60 blur-3xl animate-glow" />
       <main className="relative mx-auto flex max-w-5xl flex-col gap-8 px-6 py-16">
-        <header className="animate-rise space-y-3">
-          <h1 className="text-balance text-4xl font-semibold text-zinc-900 md:text-5xl">
-            Vote anonymously. Results update live.
-          </h1>
-          <p className="max-w-2xl text-lg text-zinc-600">
-            Move the slider to vote. Updates refresh automatically.
-          </p>
-        </header>
-
         {error ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}

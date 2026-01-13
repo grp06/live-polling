@@ -29,6 +29,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 01:58Z) Add/adjust tests for multiple-choice aggregation and validation.
 - [x] (2026-01-13 20:20Z) Update slider histogram UI to render vertical bars (bottom-to-top).
 - [x] (2026-01-13 20:40Z) Stretch slider histogram to full container width.
+- [x] (2026-01-13 20:55Z) Remove attendee intro copy and increase histogram height.
 
 ## Surprises & Discoveries
 
@@ -111,6 +112,7 @@ Plan update (2026-01-13 01:49Z): Updated plan and acceptance criteria for slider
 Plan update (2026-01-13 02:06Z): Removed Playwright acceptance testing from the plan per updated guidance.
 Plan update (2026-01-13 20:10Z): Added vertical histogram UI update request.
 Plan update (2026-01-13 20:40Z): Added full-width histogram layout update request.
+Plan update (2026-01-13 20:55Z): Added attendee copy removal and histogram height update request.
 
 Before coding, do an orientation pass:
 

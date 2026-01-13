@@ -129,7 +129,7 @@ export function PollResults({
               <span className="text-xs font-semibold text-zinc-700">
                 {value}
               </span>
-              <div className="flex h-32 w-full items-end rounded-2xl bg-zinc-100/80 px-1">
+              <div className="flex h-40 w-full items-end rounded-2xl bg-zinc-100/80 px-1">
                 <div
                   className="w-full rounded-xl bg-gradient-to-t from-amber-400 via-orange-400 to-rose-400"
                   style={{ height }}
