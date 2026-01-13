@@ -1,4 +1,4 @@
-# Build a Vercel-deployable realtime slider poll app in Next.js
+# Build a Vercel-deployable realtime slider or multiple-choice poll app in Next.js
 
 This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
@@ -6,9 +6,9 @@ If a PLANS.md file is checked into the repo, follow it exactly. If it exists, re
 
 ## Purpose / Big Picture
 
-After this change, a meetup host can run one poll at a time from an admin page, and attendees can vote anonymously on a 0–10 slider. Votes update frequently (throttled to ~200ms on the client) and everyone sees live results (count, average, histogram) update during the poll. When the host closes the poll, results freeze and the poll is added to a history view that attendees can browse.
+After this change, a meetup host can run one poll at a time from an admin page, choosing either a 0–10 slider or a multiple-choice poll. Slider polls show live count/average/histogram updates; multiple-choice polls show live counts per option. When the host closes the poll, results freeze and the poll is added to a history view that attendees can browse.
 
-You can see it working by starting the dev server, opening `/admin?key=...` in one browser, opening `/` in several others, moving sliders, watching live aggregates change, then closing the poll and seeing it appear in history.
+You can see it working by starting the dev server, opening `/admin?key=...` in one browser, opening `/` in several others, opening a slider or multiple-choice poll, voting, watching live aggregates change, then closing the poll and seeing it appear in history.
 
 ## Progress
 
@@ -22,6 +22,11 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-12 22:44Z) Verify Vercel deployment behavior and document exact env vars and steps (documented env vars and confirmed code uses KV/env checks; deployment not executed here).
 - [x] (2026-01-13 00:20Z) Add admin “clear all polls” flow to remove active poll, its votes, and history.
 - [x] (2026-01-13 00:30Z) Normalize KV hash reads to handle array responses and prevent invalid vote parsing.
+- [x] (2026-01-13 01:58Z) Add poll type support (slider vs multiple choice) with options stored on the poll and in history.
+- [x] (2026-01-13 01:58Z) Update aggregation logic to handle multiple-choice counts and slider averages.
+- [x] (2026-01-13 01:58Z) Update admin UI to select poll type and manage options.
+- [x] (2026-01-13 01:58Z) Update attendee UI to render multiple-choice voting and results.
+- [x] (2026-01-13 01:58Z) Add/adjust tests for multiple-choice aggregation and validation.
 
 ## Surprises & Discoveries
 
@@ -58,9 +63,13 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
   Rationale: Upstash KV can return array pairs; converting ensures computeAggregates only receives vote values.
   Date/Author: 2026-01-13 / assistant
 
+- Decision: Represent multiple-choice votes as numeric option indices.
+  Rationale: Reuses existing numeric vote storage and keeps KV hash values uniform across poll types.
+  Date/Author: 2026-01-13 / assistant
+
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime slider poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history. Added a deterministic aggregation test script and documented manual validation plus required environment variables. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests plus a Playwright acceptance test and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Deployment was not executed here; the remaining follow-up is to deploy on Vercel, install Playwright browsers, and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 
@@ -73,13 +82,13 @@ Current structure (as of 2026-01-12):
 - `app/page.tsx`: default Next.js starter page to replace with attendee UI.
 - `app/layout.tsx`, `app/globals.css`: global layout/styles and font setup.
 - No `src/` directory currently. Add shared code under `lib/` at repo root (for example `lib/pollService.ts`).
-- `package.json` scripts: `dev`, `build`, `start`, `lint`. No test scripts configured yet.
+- `package.json` scripts: `dev`, `build`, `start`, `lint`, `test`, `test:agg`.
 
 Key terms used in this plan:
 
-- “Poll”: A single question the admin opens. Only one poll can be active at a time. It has a 0–10 slider scale.
-- “Vote”: The attendee’s most recent slider value for the active poll, keyed by their anonymous id.
-- “Histogram”: Counts of votes at each integer value from 0 through 10 (11 buckets).
+- “Poll”: A single question the admin opens. Only one poll can be active at a time. It can be a slider or a multiple-choice poll.
+- “Vote”: The attendee’s most recent selection for the active poll, keyed by their anonymous id.
+- “Histogram”: Counts per slider value (0–10) or per multiple-choice option.
 - “KV”: Vercel KV, used as the source of truth for the active poll, votes, and history.
 
 Run Logs: write logs to a local directory at:
@@ -96,6 +105,7 @@ Plan update (2026-01-12 22:44Z): Marked Vercel readiness task complete after doc
 Plan update (2026-01-12 22:45Z): Filled Outcomes & Retrospective with the delivered scope and remaining deployment validation.
 Plan update (2026-01-13 00:20Z): Added admin clear-all flow to Progress, Decision Log, and Outcomes after user-requested reset capability.
 Plan update (2026-01-13 00:30Z): Added KV hash normalization fix after observing invalid vote parsing from array responses.
+Plan update (2026-01-13 01:49Z): Updated plan and acceptance criteria for slider vs multiple-choice poll support, including UI and test coverage changes.
 
 Before coding, do an orientation pass:
 
@@ -122,7 +132,7 @@ We will build a minimal poll system with:
    - Close poll (compute final aggregates and append to history).
    - Get current state (active poll + live aggregates + caller’s current vote).
    - Record vote (HSET-like update by anonId).
-   - Compute aggregates (count, average, histogram) from stored votes.
+   - Compute aggregates (count, average, histogram) from stored votes based on poll type.
 
 3. HTTP API routes:
    - GET `/api/poll?anonId=...`
@@ -133,11 +143,14 @@ We will build a minimal poll system with:
 4. UI:
    - Attendee page at `/` with:
      - anonymous id generation persisted in localStorage
-     - slider 0–10; changes throttled to 200ms
+     - slider 0–10 or multiple-choice options, depending on poll type
+     - slider changes throttled to 200ms
      - live results updated via polling (750ms)
      - history list of closed polls included in the `/api/poll` response (single endpoint for the UI)
    - Admin page at `/admin?key=...` with:
      - open poll question input and button
+     - selector for poll type (slider vs multiple choice)
+     - inputs for multiple-choice options
      - close poll button
      - live results + history
      - key gating via query param compared to env var, enforced server-side in admin routes
@@ -175,9 +188,10 @@ Use real Redis hash/list primitives via `@vercel/kv` (no emulation).
 
 Create `lib/pollTypes.ts`:
 
-- `ActivePoll`
-- `ClosedPollSummary`
-- `PollState` response type
+- `PollType` ("slider" | "multiple_choice")
+- `ActivePoll` (includes `type` and optional `options`)
+- `ClosedPollSummary` (includes `type` and optional `options`)
+- `PollState` response type (includes `userVote` index for multiple-choice polls)
 - constants:
   - `POLL_MIN = 0`
   - `POLL_MAX = 10`
@@ -190,8 +204,9 @@ Create `lib/pollTypes.ts`:
 
 Create `lib/pollService.ts` with functions:
 
-- `openPoll(question: string): Promise<ActivePoll>`
+- `openPoll(question: string, type: PollType, options?: string[]): Promise<ActivePoll>`
   - if there is an existing active poll, close it first (append to history, delete active key, delete its votes hash)
+  - validate `type`; for multiple choice, trim options and require at least two non-empty entries
   - create id with `crypto.randomUUID()`
   - write the new active poll to `poll:active`
 
@@ -206,7 +221,7 @@ Create `lib/pollService.ts` with functions:
 - `getState(anonId: string): Promise<PollState>`
   - read active poll
   - always include `history` (latest 20 closed polls, newest-first)
-  - if none, return `{ poll: null, count: 0, avg: null, histogram: [0..], userVote: null, history }`
+  - if none, return `{ poll: null, count: 0, avg: null, histogram: [], userVote: null, history }`
   - else:
     - read votes
     - compute aggregates
@@ -215,13 +230,13 @@ Create `lib/pollService.ts` with functions:
 
 - `recordVote(anonId: string, pollId: string, value: number): Promise<void>`
   - validate active poll exists and ids match and poll open
-  - clamp to integer 0..10
+  - clamp to integer 0..10 for slider; validate option index for multiple choice
   - HSET into votes hash
 
-- `computeAggregates(votes: Record<string, string>): { count: number; avg: number | null; histogram: number[] }`
+- `computeAggregates(poll: ActivePoll, votes: Record<string, string>): { count: number; avg: number | null; histogram: number[] }`
   - parse ints
-  - histogram length 11
-  - compute average and round to 1 decimal for display
+  - histogram length 11 for slider, option count for multiple choice
+  - compute average and round to 1 decimal for slider; avg null for multiple choice
 
 Also implement `listHistory(limit: number): Promise<ClosedPollSummary[]>` reading last N summaries from the list.
 
@@ -236,9 +251,9 @@ Also implement `listHistory(limit: number): Promise<ClosedPollSummary[]>` readin
   - returns 200 `{ ok: true }` or 400 with `{ error: "..." }`
 
 - `app/api/admin/open/route.ts`
-  - POST body: `{ key: string, question: string }`
+  - POST body: `{ key: string, question: string, type: "slider" | "multiple_choice", options?: string[] }`
   - compare `key` to `process.env.ADMIN_KEY`
-  - if ok, call `openPoll(question)` and return poll
+  - if ok, call `openPoll(question, type, options)` and return poll
 
 - `app/api/admin/close/route.ts`
   - POST body: `{ key: string }`
@@ -256,15 +271,19 @@ Implement `app/page.tsx` with:
   - set interval 750ms to fetch `/api/poll?anonId=...`
   - store response state in React state
   - if poll is null, show “Waiting for next poll” plus history section
-- Slider:
+- Slider polls:
   - value 0..10 integer steps
   - on change, update local UI immediately, and throttle POST to `/api/vote` every 200ms
   - throttle implementation should be local and predictable:
     - Use a simple timer-based throttle that sends the most recent value.
+- Multiple-choice polls:
+  - render option buttons or radios from `poll.options`
+  - on selection, POST `/api/vote` immediately with the option index
 - Live results:
-  - show count, avg, and histogram (simple bar list). Keep it visually clear with minimal styling.
+  - slider: show count, avg, and histogram (simple bar list)
+  - multiple choice: show counts per option
 - History:
-  - show list of closed polls with timestamp, question, avg, count, and optionally a small histogram.
+  - show list of closed polls with timestamp, question, type-specific results, and counts.
   - source: use the `history` field from the `/api/poll` response (single endpoint for the UI).
 
 ### 6) Implement admin UI
@@ -275,25 +294,26 @@ Implement `app/admin/page.tsx` with:
 - If missing key, render a short message: “Missing admin key.”
 - Render:
   - input for question
+  - selector for poll type (slider vs multiple choice)
+  - inputs for multiple-choice options (only when type is multiple choice)
   - “Open poll” button (POST `/api/admin/open`)
   - “Close poll” button (POST `/api/admin/close`)
   - current state and results (reuse the same results component as attendee page)
   - history list
 
-Make the admin page projector-friendly: large text for question and avg/count.
+Make the admin page projector-friendly: large text for question and results.
 
 ### 7) Add validation tests (minimum viable)
 
-This repo does not currently have a test runner configured. The user requested a minimal Node script (not Jest). Because the project code is TypeScript, add a lightweight TypeScript loader (`tsx`) so the script can import `lib/pollService.ts` directly.
+Add Jest unit tests under `lib/__tests__` to cover:
 
-Add a simple script in `package.json`:
+- slider aggregation (histogram and average)
+- multiple-choice aggregation (option counts)
+- recordVote validation for multiple-choice index bounds
 
-- `npm run test:agg` that executes `node --import tsx scripts/test-agg.mjs`, calling `computeAggregates` with fixtures and asserting with `node:assert`.
+Update `scripts/test-agg.mjs` to include multiple-choice fixtures as a quick deterministic check alongside Jest.
 
-Implement the script at `scripts/test-agg.mjs` and cover:
-
-- empty votes => count 0, avg null, histogram all zeros
-- known votes => correct histogram and average (rounded to 1 decimal)
+Add a Playwright acceptance test that mocks `/api/poll` and `/api/vote` to validate the multiple-choice voting UI renders options and posts the selected index.
 
 ### 8) Manual end-to-end validation script
 
@@ -305,19 +325,23 @@ Document a manual test procedure:
      http://localhost:3000/admin?key=YOUR_ADMIN_KEY
 3. Open attendees in multiple tabs:
      http://localhost:3000/
-4. Open a poll from admin.
-5. Move sliders in each attendee tab and confirm:
+4. Open a poll from admin (try both slider and multiple choice).
+5. For slider polls, move sliders in each attendee tab and confirm:
    - count increases to number of distinct anonIds
    - average changes as expected
    - histogram bars change
-6. Close poll and confirm:
+6. For multiple-choice polls, select options in each attendee tab and confirm:
+   - count increases to number of distinct anonIds
+   - option counts change as expected
+7. Close poll and confirm:
    - attendee pages stop showing an active poll and show “Waiting for next poll”
    - history shows the closed poll summary (final frozen results)
-7. Open a new poll and confirm it becomes the active poll and voting resets for the new poll.
+8. Open a new poll and confirm it becomes the active poll and voting resets for the new poll.
 
 Include a short expected observation snippet, e.g.:
 
-   Expected: If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.
+   Expected (slider): If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.
+   Expected (multiple choice): If two attendees pick option A and one picks option B, counts are A=2, B=1.
 
 ### 9) Vercel deploy readiness
 
@@ -337,18 +361,24 @@ Acceptance is met when all of the following are true:
      and visiting `http://localhost:3000/` loads an attendee page that shows “Waiting for next poll” and a history section.
 
 2. Opening a poll:
-   - Visiting `http://localhost:3000/admin?key=...` and opening a poll causes attendee pages to show the question and a 0–10 slider.
+   - Visiting `http://localhost:3000/admin?key=...` and opening a slider poll shows the question and a 0–10 slider.
+   - Opening a multiple-choice poll shows the question and the configured options.
 
 3. Voting updates live:
    - Moving the slider updates the voter’s own displayed value immediately.
-   - Within ~1 second, the live count/average/histogram change on both attendee and admin pages.
+   - Selecting a multiple-choice option highlights the selection immediately.
+   - Within ~1 second, the live results update on both attendee and admin pages.
 
 4. Closing a poll freezes results and adds to history:
    - Clicking “Close poll” causes attendee pages to show “Waiting for next poll”, and the closed poll summary appears in history.
    - Starting a new poll does not overwrite prior history entries.
 
 5. Basic aggregation correctness:
+   - `npm test` passes.
    - `npm run test:agg` passes.
+
+6. UI acceptance:
+   - `npm run test:e2e` passes.
 
 ## Idempotence and Recovery
 
@@ -364,10 +394,15 @@ Example curl commands (optional for manual debugging):
   - Get state:
       curl "http://localhost:3000/api/poll?anonId=test-user"
 
-  - Open poll:
+  - Open slider poll:
       curl -X POST "http://localhost:3000/api/admin/open" \
         -H "Content-Type: application/json" \
-        -d '{"key":"YOUR_ADMIN_KEY","question":"How engaged are you right now?"}'
+        -d '{"key":"YOUR_ADMIN_KEY","question":"How engaged are you right now?","type":"slider"}'
+
+  - Open multiple-choice poll:
+      curl -X POST "http://localhost:3000/api/admin/open" \
+        -H "Content-Type: application/json" \
+        -d '{"key":"YOUR_ADMIN_KEY","question":"Which topic next?","type":"multiple_choice","options":["APIs","Testing","Infra"]}'
 
   - Vote:
       curl -X POST "http://localhost:3000/api/vote" \
@@ -404,11 +439,11 @@ In `lib/kv.ts`, define exported functions:
 
 In `lib/pollService.ts`, define exported functions:
 
-  - export async function openPoll(question: string): Promise<ActivePoll>
+  - export async function openPoll(question: string, type: PollType, options?: string[]): Promise<ActivePoll>
   - export async function closePoll(): Promise<ClosedPollSummary | null>
   - export async function getState(anonId: string): Promise<PollState>
   - export async function recordVote(anonId: string, pollId: string, value: number): Promise<void>
-  - export function computeAggregates(votes: Record<string, string>): { count: number; avg: number | null; histogram: number[] }
+  - export function computeAggregates(poll: ActivePoll, votes: Record<string, string>): { count: number; avg: number | null; histogram: number[] }
   - export async function listHistory(limit: number): Promise<ClosedPollSummary[]>
 
 These signatures anchor the rest of the system and keep routes thin.

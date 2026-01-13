@@ -17,6 +17,7 @@ export default function Home() {
   const [anonId, setAnonId] = useState<string | null>(null);
   const [state, setState] = useState<PollState | null>(null);
   const [sliderValue, setSliderValue] = useState(DEFAULT_SLIDER);
+  const [choiceValue, setChoiceValue] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pendingVoteRef = useRef<number | null>(null);
   const throttleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -73,6 +74,7 @@ export default function Home() {
     if (!state?.poll) {
       pollIdRef.current = null;
       setSliderValue(DEFAULT_SLIDER);
+      setChoiceValue(null);
       pendingVoteRef.current = null;
       if (throttleRef.current) {
         clearTimeout(throttleRef.current);
@@ -83,7 +85,14 @@ export default function Home() {
 
     if (pollIdRef.current !== state.poll.id) {
       pollIdRef.current = state.poll.id;
-      setSliderValue(state.userVote ?? DEFAULT_SLIDER);
+      setSliderValue(
+        state.poll.type === "slider"
+          ? state.userVote ?? DEFAULT_SLIDER
+          : DEFAULT_SLIDER
+      );
+      setChoiceValue(
+        state.poll.type === "multiple_choice" ? state.userVote : null
+      );
       pendingVoteRef.current = null;
       if (throttleRef.current) {
         clearTimeout(throttleRef.current);
@@ -92,13 +101,45 @@ export default function Home() {
     }
   }, [state?.poll, state?.userVote]);
 
-  const histogram = state?.histogram ?? emptyHistogram();
+  const histogram = state?.histogram ?? [];
   const count = state?.count ?? 0;
   const avg = state?.avg ?? null;
   const history = state?.history ?? [];
   const poll = state?.poll ?? null;
+  const sliderHistogram =
+    poll?.type === "slider" && histogram.length === 0
+      ? emptyHistogram()
+      : histogram;
 
-  const handleVote = (value: number) => {
+  const submitVote = async (value: number) => {
+    if (!poll || !anonId) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/vote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          anonId,
+          pollId: poll.id,
+          value,
+        }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "failed to submit vote");
+      }
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown error";
+      setError(message);
+    }
+  };
+
+  const handleSliderVote = (value: number) => {
     if (!poll || !anonId) {
       return;
     }
@@ -109,34 +150,19 @@ export default function Home() {
       return;
     }
 
-    throttleRef.current = setTimeout(async () => {
+    throttleRef.current = setTimeout(() => {
       const pending = pendingVoteRef.current;
       throttleRef.current = null;
       if (pending === null) {
         return;
       }
-      try {
-        const response = await fetch("/api/vote", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            anonId,
-            pollId: poll.id,
-            value: pending,
-          }),
-        });
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "failed to submit vote");
-        }
-        setError(null);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "unknown error";
-        setError(message);
-      }
+      void submitVote(pending);
     }, VOTE_THROTTLE_MS);
+  };
+
+  const handleChoiceVote = (index: number) => {
+    setChoiceValue(index);
+    void submitVote(index);
   };
 
   const sliderLabel = useMemo(
@@ -175,31 +201,58 @@ export default function Home() {
                   {poll.question}
                 </h2>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm text-zinc-500">
-                  <span>Move the slider</span>
-                  <span className="text-base font-semibold text-zinc-900">
-                    {sliderLabel}
-                  </span>
+              {poll.type === "multiple_choice" ? (
+                <div className="space-y-3">
+                  <div className="text-sm text-zinc-500">
+                    Select one option
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {(poll.options ?? []).map((option, index) => {
+                      const isSelected = choiceValue === index;
+                      return (
+                        <button
+                          key={`${option}-${index}`}
+                          type="button"
+                          onClick={() => handleChoiceVote(index)}
+                          className={`rounded-2xl border px-4 py-3 text-left text-base font-semibold transition ${
+                            isSelected
+                              ? "border-amber-400 bg-amber-100 text-amber-900"
+                              : "border-black/10 bg-white text-zinc-900 hover:border-amber-300"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min={POLL_MIN}
-                  max={POLL_MAX}
-                  step={1}
-                  value={sliderValue}
-                  onChange={(event) => {
-                    const nextValue = Number(event.target.value);
-                    setSliderValue(nextValue);
-                    handleVote(nextValue);
-                  }}
-                  className="w-full accent-orange-500"
-                />
-                <div className="flex justify-between text-xs text-zinc-400">
-                  <span>{POLL_MIN}</span>
-                  <span>{POLL_MAX}</span>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-zinc-500">
+                    <span>Move the slider</span>
+                    <span className="text-base font-semibold text-zinc-900">
+                      {sliderLabel}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={POLL_MIN}
+                    max={POLL_MAX}
+                    step={1}
+                    value={sliderValue}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value);
+                      setSliderValue(nextValue);
+                      handleSliderVote(nextValue);
+                    }}
+                    className="w-full accent-orange-500"
+                  />
+                  <div className="flex justify-between text-xs text-zinc-400">
+                    <span>{POLL_MIN}</span>
+                    <span>{POLL_MAX}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -216,7 +269,13 @@ export default function Home() {
           )}
         </section>
 
-        <PollResults count={count} avg={avg} histogram={histogram} />
+        <PollResults
+          count={count}
+          avg={avg}
+          histogram={poll?.type === "slider" ? sliderHistogram : histogram}
+          pollType={poll?.type ?? null}
+          options={poll?.options}
+        />
 
         <PollHistory history={history} />
       </main>

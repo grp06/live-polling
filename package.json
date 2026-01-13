@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
-    "test:agg": "node --import tsx scripts/test-agg.mjs"
+    "test:agg": "node --import tsx scripts/test-agg.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@upstash/redis": "^1.36.1",
@@ -19,6 +20,7 @@
     "redis": "^5.10.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/jest": "^29.5.14",

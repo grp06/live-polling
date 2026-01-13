@@ -15,6 +15,10 @@ export function AdminClient() {
   const [anonId, setAnonId] = useState<string | null>(null);
   const [state, setState] = useState<PollState | null>(null);
   const [question, setQuestion] = useState("");
+  const [pollType, setPollType] = useState<"slider" | "multiple_choice">(
+    "slider"
+  );
+  const [options, setOptions] = useState<string[]>(["", ""]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -66,6 +70,10 @@ export function AdminClient() {
   const count = state?.count ?? 0;
   const avg = state?.avg ?? null;
   const history = state?.history ?? [];
+  const resultsHistogram =
+    poll?.type === "slider" && histogram.length === 0
+      ? Array(11).fill(0)
+      : histogram;
 
   const handleOpen = async () => {
     if (!adminKey) {
@@ -77,6 +85,15 @@ export function AdminClient() {
       setError("Question is required.");
       return;
     }
+    if (pollType === "multiple_choice") {
+      const normalized = options
+        .map((option) => option.trim())
+        .filter((option) => option.length > 0);
+      if (normalized.length < 2) {
+        setError("At least two options are required.");
+        return;
+      }
+    }
 
     setBusy(true);
     try {
@@ -85,7 +102,15 @@ export function AdminClient() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ key: adminKey, question: trimmed }),
+        body: JSON.stringify({
+          key: adminKey,
+          question: trimmed,
+          type: pollType,
+          options:
+            pollType === "multiple_choice"
+              ? options.map((option) => option.trim())
+              : undefined,
+        }),
       });
       if (!response.ok) {
         const payload = (await response.json()) as { error?: string };
@@ -216,6 +241,79 @@ export function AdminClient() {
                 placeholder="How energized is the room right now?"
                 className="w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-400/70"
               />
+              <div className="mt-4 space-y-2 text-sm text-zinc-300">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                  Poll type
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPollType("slider")}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
+                      pollType === "slider"
+                        ? "border-amber-400 bg-amber-400 text-zinc-900"
+                        : "border-white/20 text-white hover:border-white/50"
+                    }`}
+                  >
+                    Slider
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPollType("multiple_choice")}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] ${
+                      pollType === "multiple_choice"
+                        ? "border-amber-400 bg-amber-400 text-zinc-900"
+                        : "border-white/20 text-white hover:border-white/50"
+                    }`}
+                  >
+                    Multiple choice
+                  </button>
+                </div>
+              </div>
+              {pollType === "multiple_choice" ? (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                    Options
+                  </p>
+                  <div className="space-y-2">
+                    {options.map((option, index) => (
+                      <div
+                        key={`option-${index}`}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          value={option}
+                          onChange={(event) => {
+                            const next = [...options];
+                            next[index] = event.target.value;
+                            setOptions(next);
+                          }}
+                          placeholder={`Option ${index + 1}`}
+                          className="flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-400/70"
+                        />
+                        {options.length > 2 ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOptions(options.filter((_, i) => i !== index))
+                            }
+                            className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:border-white/40"
+                          >
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOptions([...options, ""])}
+                    className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:border-white/50"
+                  >
+                    Add option
+                  </button>
+                </div>
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-3">
               <button
@@ -249,7 +347,9 @@ export function AdminClient() {
         <PollResults
           count={count}
           avg={avg}
-          histogram={histogram.length ? histogram : Array(11).fill(0)}
+          histogram={resultsHistogram}
+          pollType={poll?.type ?? null}
+          options={poll?.options}
           title="Live results"
           large
         />

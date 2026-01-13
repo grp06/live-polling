@@ -34,14 +34,33 @@ export function PollHistory({ history }: PollHistoryProps) {
             >
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
                 Closed {formatTimestamp(item.closedAt)}
+                {item.type === "multiple_choice" ? " · Multiple choice" : ""}
               </p>
               <p className="mt-2 text-base font-semibold text-zinc-900">
                 {item.question}
               </p>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-zinc-600">
-                <span>Avg {item.avg === null ? "—" : item.avg.toFixed(1)}</span>
-                <span>{item.count} votes</span>
-              </div>
+              {item.type === "multiple_choice" ? (
+                <div className="mt-3 space-y-2 text-sm text-zinc-600">
+                  {item.options?.map((option, index) => (
+                    <div key={`${option}-${index}`} className="flex gap-3">
+                      <span className="min-w-[6rem]">{option}</span>
+                      <span className="font-semibold text-zinc-800">
+                        {item.histogram[index] ?? 0}
+                      </span>
+                    </div>
+                  ))}
+                  <span className="text-xs uppercase tracking-[0.2em] text-zinc-400">
+                    {item.count} votes
+                  </span>
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-wrap gap-4 text-sm text-zinc-600">
+                  <span>
+                    Avg {item.avg === null ? "—" : item.avg.toFixed(1)}
+                  </span>
+                  <span>{item.count} votes</span>
+                </div>
+              )}
             </div>
           ))}
         </div>

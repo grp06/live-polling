@@ -1,6 +1,6 @@
 # Live Polling
 
-A realtime slider poll app for meetups. Hosts can open one poll at a time from `/admin`, attendees vote anonymously on a 0–10 slider, and everyone sees live aggregates plus a history of closed polls.
+A realtime poll app for meetups. Hosts can open a slider or multiple-choice poll from `/admin`, attendees vote anonymously, and everyone sees live aggregates plus a history of closed polls.
 
 ## Setup
 
@@ -34,6 +34,19 @@ Visit:
 npm run test:agg
 ```
 
+## Unit tests
+
+```
+npm test
+```
+
+## UI acceptance test
+
+```
+npx playwright install
+npm run test:e2e
+```
+
 ## Manual validation (end-to-end)
 
 1) Start the dev server:
@@ -54,23 +67,28 @@ http://localhost:3000/admin?key=YOUR_ADMIN_KEY
 http://localhost:3000/
 ```
 
-4) Open a poll from the admin console.
+4) Open a poll from the admin console (try both slider and multiple choice).
 
-5) Move sliders in each attendee tab and confirm:
+5) For slider polls, move sliders in each attendee tab and confirm:
 - the count increases to the number of distinct anon IDs
 - the average changes as expected
 - the histogram bars update
 
-6) Close the poll and confirm:
+6) For multiple-choice polls, select options in each attendee tab and confirm:
+- the count increases to the number of distinct anon IDs
+- the option counts change as expected
+
+7) Close the poll and confirm:
 - attendee pages show “Waiting for the next poll”
 - the closed poll summary appears in history
 
-7) Use “Clear all polls” to remove the active poll and history.
+8) Use “Clear all polls” to remove the active poll and history.
 
-8) Open a new poll and confirm voting resets for the new poll.
+9) Open a new poll and confirm voting resets for the new poll.
 
 Expected example:
 If two attendees set values to 0 and 10, count is 2, avg is 5.0, histogram[0]=1 and histogram[10]=1.
+If two attendees pick option A and one picks option B, counts are A=2 and B=1.
 
 ## Vercel deployment notes
 
