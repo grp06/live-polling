@@ -27,6 +27,7 @@ npm run dev
 Visit:
 - Attendee view: `http://localhost:3000/`
 - Admin view: `http://localhost:3000/admin?key=YOUR_ADMIN_KEY`
+- Projector results: `http://localhost:3000/results`
 
 ## Prewritten poll presets
 

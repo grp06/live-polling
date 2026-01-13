@@ -32,6 +32,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 20:55Z) Remove attendee intro copy and increase histogram height.
 - [x] (2026-01-13 22:05Z) Redesign attendee and admin UI with a subtle material aesthetic, updated typography, and mobile-first layout.
 - [x] (2026-01-13 21:56Z) Add prewritten poll presets loaded from JSON with admin sidebar UI, API route, tests, and docs.
+- [x] (2026-01-13 22:10Z) Add projector-only `/results` route and adjust attendee layout to full-width cards; remove extra voting hint text and ensure multiple-choice bars stay consistent width.
 
 ## Surprises & Discoveries
 
@@ -84,9 +85,13 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
   Rationale: This keeps the existing open/close flow intact and prevents accidental poll switches mid-session.
   Date/Author: 2026-01-13 / assistant
 
+- Decision: Add a dedicated `/results` route that mirrors attendee visuals without voting controls and use a single-column layout for full-width cards on desktop.
+  Rationale: Projector mode needs large, uncluttered results and active poll display without interaction UI.
+  Date/Author: 2026-01-13 / assistant
+
 ## Outcomes & Retrospective
 
-Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Redesigned attendee and admin surfaces with a warm, subtle material aesthetic, updated typography, and mobile-first layout refinements. Added prewritten poll presets via `data/prewritten-polls.json`, an admin-only presets API route, and a sidebar that populates the admin form when no poll is active. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
+Implemented a Vercel-ready realtime poll app with KV-backed storage, API routes for polling and admin control, and attendee/admin UIs that show live aggregates and history for slider and multiple-choice polls. Added Jest unit tests and expanded the aggregation script to cover multiple-choice counts. Added an admin “clear all polls” action to reset active polls and history. Normalized KV hash reads to handle array responses and avoid invalid vote parsing. Redesigned attendee and admin surfaces with a warm, subtle material aesthetic, updated typography, and mobile-first layout refinements. Added prewritten poll presets via `data/prewritten-polls.json`, an admin-only presets API route, and a sidebar that populates the admin form when no poll is active. Added a projector-friendly `/results` route with a full-width layout and multiple-choice bars that stay consistent width even with long labels. Deployment was not executed here; the remaining follow-up is to deploy on Vercel and confirm KV credentials and admin key behavior in production.
 
 ## Context and Orientation
 
@@ -130,6 +135,7 @@ Plan update (2026-01-13 20:10Z): Added vertical histogram UI update request.
 Plan update (2026-01-13 20:40Z): Added full-width histogram layout update request.
 Plan update (2026-01-13 20:55Z): Added attendee copy removal and histogram height update request.
 Plan update (2026-01-13 23:10Z): Added prewritten poll presets (JSON source, loader, API route, admin sidebar) plus tests and acceptance criteria.
+Plan update (2026-01-13 22:10Z): Added projector-only results route, full-width attendee layout, and consistent multiple-choice bar widths.
 
 Before coding, do an orientation pass:
 
@@ -486,3 +492,4 @@ In `lib/prewrittenPolls.ts`, define exported functions:
 These signatures anchor the rest of the system and keep routes thin.
 
 Plan revision note (2026-01-13 23:10Z): Added the prewritten poll presets feature (JSON source, loader, API route, admin sidebar, tests, and validation updates) to reflect the new requirement for ahead-of-time questions and disabled preset controls while a poll is active.
+Plan revision note (2026-01-13 22:10Z): Added the projector-only `/results` route, full-width layout adjustments, and multiple-choice bar width normalization to reflect the projector display requirements.

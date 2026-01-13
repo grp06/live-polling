@@ -63,18 +63,18 @@ export function PollResults({
               return (
                 <div
                   key={`${option}-${index}`}
-                  className="flex items-center gap-3"
+                  className="grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_2.5rem]"
                 >
-                  <span className="min-w-[6rem] text-sm font-medium text-[var(--ink)]">
+                  <span className="break-words text-sm font-medium text-[var(--ink)] md:pr-2">
                     {option}
                   </span>
-                  <div className="h-2.5 flex-1 rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
+                  <div className="h-2.5 w-full rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
                     <div
                       className="h-2.5 rounded-full bg-[var(--accent)] transition-[width] duration-500"
                       style={{ width }}
                     />
                   </div>
-                  <span className="w-8 text-right text-sm font-semibold text-[var(--ink)]">
+                  <span className="text-right text-sm font-semibold text-[var(--ink)]">
                     {value}
                   </span>
                 </div>
