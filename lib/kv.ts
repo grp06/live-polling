@@ -1,21 +1,27 @@
 import { createClient } from "@vercel/kv";
 
-const kvUrl = process.env.KV_REST_API_URL;
-const kvToken = process.env.KV_REST_API_TOKEN;
-if (!kvUrl || !kvToken) {
-  throw new Error(
-    "@vercel/kv: Missing required environment variables KV_REST_API_URL and KV_REST_API_TOKEN"
-  );
-}
+let kvClient: ReturnType<typeof createClient> | null = null;
 
-const kv = createClient({
-  url: kvUrl,
-  token: kvToken,
-  automaticDeserialization: false,
-});
+const getKv = () => {
+  if (!kvClient) {
+    const kvUrl = process.env.KV_REST_API_URL;
+    const kvToken = process.env.KV_REST_API_TOKEN;
+    if (!kvUrl || !kvToken) {
+      throw new Error(
+        "@vercel/kv: Missing required environment variables KV_REST_API_URL and KV_REST_API_TOKEN"
+      );
+    }
+    kvClient = createClient({
+      url: kvUrl,
+      token: kvToken,
+      automaticDeserialization: false,
+    });
+  }
+  return kvClient;
+};
 
 export async function kvGetJson<T>(key: string): Promise<T | null> {
-  const value = await kv.get<string>(key);
+  const value = await getKv().get<string>(key);
   if (value === null || value === undefined) {
     return null;
   }
@@ -26,11 +32,11 @@ export async function kvGetJson<T>(key: string): Promise<T | null> {
 }
 
 export async function kvSetJson<T>(key: string, value: T): Promise<void> {
-  await kv.set(key, JSON.stringify(value));
+  await getKv().set(key, JSON.stringify(value));
 }
 
 export async function kvDel(key: string): Promise<void> {
-  await kv.del(key);
+  await getKv().del(key);
 }
 
 export async function kvHSet(
@@ -38,11 +44,11 @@ export async function kvHSet(
   field: string,
   value: string
 ): Promise<void> {
-  await kv.hset(key, { [field]: value });
+  await getKv().hset(key, { [field]: value });
 }
 
 export async function kvHGet(key: string, field: string): Promise<string | null> {
-  const value = await kv.hget<string>(key, field);
+  const value = await getKv().hget<string>(key, field);
   if (value === null || value === undefined) {
     return null;
   }
@@ -55,7 +61,7 @@ export async function kvHGet(key: string, field: string): Promise<string | null>
 export async function kvHGetAll(
   key: string
 ): Promise<Record<string, string>> {
-  const value = await kv.hgetall<unknown>(key);
+  const value = (await getKv().hgetall(key)) as unknown;
   if (value === null || value === undefined) {
     return {};
   }
@@ -87,7 +93,7 @@ export async function kvHGetAll(
 }
 
 export async function kvLPushJson<T>(key: string, value: T): Promise<void> {
-  await kv.lpush(key, JSON.stringify(value));
+  await getKv().lpush(key, JSON.stringify(value));
 }
 
 export async function kvLRangeJson<T>(
@@ -95,7 +101,7 @@ export async function kvLRangeJson<T>(
   start: number,
   stop: number
 ): Promise<T[]> {
-  const values = await kv.lrange<string[]>(key, start, stop);
+  const values = await getKv().lrange<string[]>(key, start, stop);
   return values.map((entry) => {
     if (typeof entry !== "string") {
       throw new Error(`Expected string list entries for key ${key}`);
