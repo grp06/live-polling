@@ -172,19 +172,18 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] text-[var(--ink)]">
-      <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 animate-drift" />
-      <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
+      <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute -top-10 left-12 h-44 w-44 -rotate-6 rounded-[44px] bg-[var(--mist)] opacity-60 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute top-24 left-[-3rem] h-40 w-40 rotate-12 rounded-[40px] bg-[var(--surface-muted)] opacity-65 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute top-40 right-24 h-28 w-28 rotate-12 rounded-[32px] bg-[var(--sun)] opacity-55 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute bottom-20 right-[-2rem] h-36 w-36 -rotate-8 rounded-[36px] bg-[var(--surface-strong)] opacity-55 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute bottom-24 right-24 h-32 w-32 rotate-6 rounded-[32px] bg-[var(--sage)] opacity-50 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 blur-2xl animate-drift" />
+      <div className="pointer-events-none absolute bottom-12 left-24 h-36 w-36 -rotate-12 rounded-[36px] bg-[var(--blush)] opacity-55 blur-2xl animate-drift" />
       <main className="relative mx-auto flex max-w-6xl flex-col gap-10 px-6 py-14 md:px-10">
-        <header className="space-y-3">
+        <header>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
-            Live polling
-          </p>
-          <h1 className="text-balance font-[var(--font-display)] text-4xl text-[var(--ink)] md:text-5xl">
-            Cast your vote with confidence.
-          </h1>
-          <p className="max-w-xl text-sm text-[var(--ink-muted)]">
-            Your response updates instantly for the room, while staying private
-            to you.
+            Anonymous live polling
           </p>
         </header>
 

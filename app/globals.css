@@ -11,6 +11,10 @@
   --accent: #c46a35;
   --accent-strong: #a65327;
   --accent-soft: #f2d7c5;
+  --mist: #efe6dd;
+  --sage: #dde7dc;
+  --blush: #f1ddd6;
+  --sun: #f7e3c9;
   --background: var(--canvas);
   --foreground: var(--ink);
 }
