@@ -64,7 +64,7 @@ export default function Home() {
   }, [anonId]);
 
   useEffect(() => {
-    if (!anonId || state?.poll) {
+    if (!anonId) {
       return;
     }
 
@@ -88,7 +88,7 @@ export default function Home() {
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(timer);
-  }, [anonId, state?.poll]);
+  }, [anonId]);
 
   useEffect(() => {
     if (!state?.poll) {

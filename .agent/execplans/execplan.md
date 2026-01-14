@@ -35,6 +35,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 22:10Z) Add projector-only `/results` route and adjust attendee layout to full-width cards; remove extra voting hint text and ensure multiple-choice bars stay consistent width.
 - [x] (2026-01-13 23:24Z) Align slider thumb with track using explicit sizing to keep the 40px control centered on mobile.
 - [x] (2026-01-13 23:31Z) Prevent slider drag from panning the page by restricting touch gestures on the range input.
+- [x] (2026-01-14 00:57Z) Resume attendee polling during active polls so the UI clears when a poll closes.
 
 ## Surprises & Discoveries
 
@@ -98,6 +99,10 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - Decision: Set `touch-action: pan-y` on the slider input to prevent horizontal drag from panning the page while preserving vertical scrolling.
   Rationale: The range input handles horizontal drag; limiting touch gestures stops page drift during slider interaction.
   Date/Author: 2026-01-13 / assistant
+
+- Decision: Keep the attendee poll state interval running even when a poll is active.
+  Rationale: Continuous polling ensures the UI transitions to “no active poll” immediately after the host closes the poll.
+  Date/Author: 2026-01-14 / assistant
 
 ## Outcomes & Retrospective
 
@@ -505,3 +510,4 @@ Plan revision note (2026-01-13 23:10Z): Added the prewritten poll presets featur
 Plan revision note (2026-01-13 22:10Z): Added the projector-only `/results` route, full-width layout adjustments, and multiple-choice bar width normalization to reflect the projector display requirements.
 Plan revision note (2026-01-13 23:24Z): Recorded the slider thumb alignment CSS update in Progress and Decision Log to address mobile track alignment.
 Plan revision note (2026-01-13 23:31Z): Logged the slider touch-action update to prevent page drag while adjusting the range input.
+Plan revision note (2026-01-14 00:57Z): Logged the polling interval update so attendees detect closed polls without manual refresh.
