@@ -43,7 +43,7 @@
   {
     "id": "next-time-more",
     "type": "multiple_choice",
-    "question": "What do you want _more_ of next time?",
+    "question": "What do you want more of next time?",
     "options": ["Demos", "Deep dives", "Networking", "Debates"]
   }
 ]
