@@ -55,7 +55,7 @@ export default function ResultsPage() {
   }, [anonId, loadState]);
 
   useEffect(() => {
-    if (!anonId || !state?.poll) {
+    if (!anonId) {
       return;
     }
 
@@ -71,7 +71,7 @@ export default function ResultsPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [anonId, state?.poll?.id, loadState]);
+  }, [anonId, loadState]);
 
   const histogram = state?.histogram ?? [];
   const count = state?.count ?? 0;

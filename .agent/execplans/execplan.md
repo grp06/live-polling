@@ -36,6 +36,7 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 - [x] (2026-01-13 23:24Z) Align slider thumb with track using explicit sizing to keep the 40px control centered on mobile.
 - [x] (2026-01-13 23:31Z) Prevent slider drag from panning the page by restricting touch gestures on the range input.
 - [x] (2026-01-14 00:57Z) Resume attendee polling during active polls so the UI clears when a poll closes.
+- [x] (2026-01-14 01:11Z) Keep projector results polling active so the page switches between “no poll” and active poll states.
 
 ## Surprises & Discoveries
 
@@ -102,6 +103,10 @@ You can see it working by starting the dev server, opening `/admin?key=...` in o
 
 - Decision: Keep the attendee poll state interval running even when a poll is active.
   Rationale: Continuous polling ensures the UI transitions to “no active poll” immediately after the host closes the poll.
+  Date/Author: 2026-01-14 / assistant
+
+- Decision: Keep the results page polling interval running regardless of active poll state.
+  Rationale: Projector views need to transition from “no poll” to active poll (and back) without manual refresh.
   Date/Author: 2026-01-14 / assistant
 
 ## Outcomes & Retrospective
@@ -511,3 +516,4 @@ Plan revision note (2026-01-13 22:10Z): Added the projector-only `/results` rout
 Plan revision note (2026-01-13 23:24Z): Recorded the slider thumb alignment CSS update in Progress and Decision Log to address mobile track alignment.
 Plan revision note (2026-01-13 23:31Z): Logged the slider touch-action update to prevent page drag while adjusting the range input.
 Plan revision note (2026-01-14 00:57Z): Logged the polling interval update so attendees detect closed polls without manual refresh.
+Plan revision note (2026-01-14 01:11Z): Logged results page polling behavior and test coverage to ensure projector mode updates without refresh.
