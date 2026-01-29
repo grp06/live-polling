@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ensureAuthorized, handleRouteError, parseJson, requireAdminKey } from "@/app/api/_utils";
 import { closePoll } from "@/lib/pollService";
-import { ensureAuthorized, parseJson, requireAdminKey } from "../_utils";
 
 type ClosePayload = {
   key: string;
@@ -30,8 +30,6 @@ export async function POST(request: Request) {
     const summary = await closePoll();
     return NextResponse.json(summary);
   } catch (error) {
-    console.error("POST /api/admin/close failed", error);
-    const message = error instanceof Error ? error.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError("POST /api/admin/close failed", error);
   }
 }

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-type AdminKeyResult =
+export type AdminKeyResult =
   | { ok: true; adminKey: string }
   | { ok: false; response: NextResponse };
 
-type JsonResult<T> =
+export type JsonResult<T> =
   | { ok: true; data: T }
   | { ok: false; response: NextResponse };
 
@@ -43,4 +43,10 @@ export async function parseJson<T>(request: Request): Promise<JsonResult<T>> {
       response: NextResponse.json({ error: "invalid json" }, { status: 400 }),
     };
   }
+}
+
+export function handleRouteError(label: string, error: unknown): NextResponse {
+  console.error(label, error);
+  const message = error instanceof Error ? error.message : "unknown error";
+  return NextResponse.json({ error: message }, { status: 500 });
 }

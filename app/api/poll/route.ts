@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { handleRouteError } from "@/app/api/_utils";
 import { getState } from "@/lib/pollService";
 
 export async function GET(request: Request) {
@@ -14,8 +15,6 @@ export async function GET(request: Request) {
     const state = await getState(anonId);
     return NextResponse.json(state);
   } catch (error) {
-    console.error("GET /api/poll failed", error);
-    const message = error instanceof Error ? error.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError("GET /api/poll failed", error);
   }
 }

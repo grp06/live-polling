@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ensureAuthorized, handleRouteError, requireAdminKey } from "@/app/api/_utils";
 import { loadPrewrittenPolls } from "@/lib/prewrittenPolls";
-import { ensureAuthorized, requireAdminKey } from "../_utils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,8 +21,6 @@ export async function GET(request: Request) {
     const polls = await loadPrewrittenPolls();
     return NextResponse.json({ polls });
   } catch (error) {
-    console.error("GET /api/admin/presets failed", error);
-    const message = error instanceof Error ? error.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError("GET /api/admin/presets failed", error);
   }
 }

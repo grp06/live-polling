@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { handleRouteError, parseJson } from "@/app/api/_utils";
 import { recordVote } from "@/lib/pollService";
 
 type VotePayload = {
@@ -9,17 +10,17 @@ type VotePayload = {
 };
 
 export async function POST(request: Request) {
-  let body: VotePayload;
-  try {
-    body = (await request.json()) as VotePayload;
-  } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
+  const bodyResult = await parseJson<VotePayload>(request);
+  if (!bodyResult.ok) {
+    return bodyResult.response;
   }
 
-  if (!body?.anonId) {
+  const body = bodyResult.data;
+
+  if (!body.anonId) {
     return NextResponse.json({ error: "anonId is required" }, { status: 400 });
   }
-  if (!body?.pollId) {
+  if (!body.pollId) {
     return NextResponse.json({ error: "pollId is required" }, { status: 400 });
   }
   if (typeof body.value !== "number") {
@@ -30,8 +31,6 @@ export async function POST(request: Request) {
     await recordVote(body.anonId, body.pollId, body.value);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("POST /api/vote failed", error);
-    const message = error instanceof Error ? error.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError("POST /api/vote failed", error);
   }
 }

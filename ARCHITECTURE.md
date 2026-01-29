@@ -40,7 +40,7 @@
 - Boundary rule: API routes should be thin, delegating domain logic to `lib/pollService.ts` and related helpers.
 
 ## 6. Cross-Cutting Concerns
-- Authn/authz: admin actions require `ADMIN_KEY`; enforced server-side via `app/api/admin/_utils.ts`.
+- Authn/authz: admin actions require `ADMIN_KEY`; enforced server-side via `app/api/_utils.ts`.
 - Logging: server routes log errors via `console.error` with route labels.
 - Error handling: 400 for invalid input, 401 for unauthorized admin key, 500 for server failures.
 - Configuration: environment variables in `.env.local` or deployment env; no hardcoded secrets.
@@ -60,7 +60,7 @@
 ## 9. Key Design Decisions
 - Use Vercel KV for poll state and vote aggregation to avoid database setup and keep latency low.
 - Keep poll domain logic in `lib/pollService.ts` to share between API routes and tests.
-- Admin API uses a shared helper (`app/api/admin/_utils.ts`) for consistent auth and JSON parsing.
+- Admin API uses a shared helper (`app/api/_utils.ts`) for consistent auth and JSON parsing.
 - Prewritten polls are file-backed to allow quick edits without DB schema changes.
 - Shared `PageShell` keeps page backdrops consistent and reduces duplicated UI scaffolding across views.
 

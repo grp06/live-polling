@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ensureAuthorized, parseJson, requireAdminKey } from "@/app/api/_utils";
 import { clearAllPolls } from "@/lib/pollService";
-import { ensureAuthorized, parseJson, requireAdminKey } from "../_utils";
 
 export async function POST(request: Request) {
   const adminKeyResult = requireAdminKey();

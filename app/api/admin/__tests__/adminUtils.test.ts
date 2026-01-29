@@ -1,4 +1,9 @@
-import { ensureAuthorized, parseJson, requireAdminKey } from "../_utils";
+import {
+  ensureAuthorized,
+  handleRouteError,
+  parseJson,
+  requireAdminKey,
+} from "@/app/api/_utils";
 
 describe("requireAdminKey", () => {
   const original = process.env.ADMIN_KEY;
@@ -104,5 +109,14 @@ describe("parseJson", () => {
     await expect(result.response.json()).resolves.toEqual({
       error: "invalid json",
     });
+  });
+});
+
+describe("handleRouteError", () => {
+  it("returns 500 response with error message", async () => {
+    const response = handleRouteError("TEST", new Error("boom"));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "boom" });
   });
 });
