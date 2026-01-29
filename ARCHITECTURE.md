@@ -19,7 +19,7 @@
   - Attendee view (`app/page.tsx`)
   - Admin view (`app/admin`)
   - Results view (`app/results`)
-  - Shared UI components (`components/`), including the `PageShell` backdrop wrapper used by attendee, admin, and results pages.
+  - Shared UI components (`components/`), including the `PageShell` backdrop wrapper and `ErrorBanner` used by attendee, admin, and results pages.
 
 ## 4. Directory Layout
 - `app/`: Next.js App Router pages and API routes.
@@ -29,6 +29,7 @@
 - `lib/`: domain logic, shared utilities, and hooks.
 - `components/`: shared UI components.
   - `components/PageShell.tsx`: shared page shell and decorative backdrop variants for primary views.
+  - `components/ErrorBanner.tsx`: shared error banner used by primary pages.
 - `data/`: prewritten poll JSON file.
 - `tests/` and `app/__tests__`, `lib/__tests__`, `components/__tests__`: Jest test suites.
 
