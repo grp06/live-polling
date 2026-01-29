@@ -12,7 +12,7 @@
 
 ## 3. Domain Model and Modules
 - Poll domain (`lib/pollTypes.ts`, `lib/pollService.ts`): defines poll types, aggregates votes, manages active poll and history.
-- Admin API (`app/api/admin/*`): authorizes with `ADMIN_KEY` and orchestrates poll actions.
+- Admin API (`app/api/admin/*`): authorizes with `ADMIN_KEY`, shares authorization/parsing helpers in `app/api/admin/adminRoute.ts`, and orchestrates poll actions.
 - Attendee API (`app/api/poll`, `app/api/vote`): fetches state and records votes.
 - Presets (`lib/prewrittenPolls.ts`, `data/prewritten-polls.json`): optional prewritten poll list loaded by admin UI.
 - UI modules:
@@ -24,6 +24,7 @@
 ## 4. Directory Layout
 - `app/`: Next.js App Router pages and API routes.
   - `app/api/`: server endpoints for polls, voting, admin actions.
+    - `app/api/admin/adminRoute.ts`: shared admin authorization/parsing helper for admin endpoints.
   - `app/admin/`: admin UI.
   - `app/results/`: projector/results UI.
 - `lib/`: domain logic, shared utilities, and hooks.
@@ -36,12 +37,12 @@
 ## 5. Data Flow and Boundaries
 - Attendee state flow: UI (`app/page.tsx`) -> `usePollState` -> `GET /api/poll` -> `getState` -> Vercel KV.
 - Voting flow: UI -> `POST /api/vote` -> `recordVote` -> Vercel KV.
-- Admin flow: UI (`app/admin/AdminClient.tsx`) -> `POST /api/admin/open|close|clear` -> `pollService` -> Vercel KV.
+- Admin flow: UI (`app/admin/AdminClient.tsx`) -> `POST /api/admin/open|close|clear` -> `adminRoute` helper -> `pollService` -> Vercel KV.
 - Preset flow: Admin UI -> `GET /api/admin/presets` -> `loadPrewrittenPolls` -> filesystem JSON.
 - Boundary rule: API routes should be thin, delegating domain logic to `lib/pollService.ts` and related helpers.
 
 ## 6. Cross-Cutting Concerns
-- Authn/authz: admin actions require `ADMIN_KEY`; enforced server-side via `app/api/_utils.ts`.
+- Authn/authz: admin actions require `ADMIN_KEY`; enforced server-side via `app/api/_utils.ts` and `app/api/admin/adminRoute.ts`.
 - Logging: server routes log errors via `console.error` with route labels.
 - Error handling: 400 for invalid input, 401 for unauthorized admin key, 500 for server failures.
 - Configuration: environment variables in `.env.local` or deployment env; no hardcoded secrets.
@@ -61,7 +62,7 @@
 ## 9. Key Design Decisions
 - Use Vercel KV for poll state and vote aggregation to avoid database setup and keep latency low.
 - Keep poll domain logic in `lib/pollService.ts` to share between API routes and tests.
-- Admin API uses a shared helper (`app/api/_utils.ts`) for consistent auth and JSON parsing.
+- Admin API uses shared helpers (`app/api/_utils.ts`, `app/api/admin/adminRoute.ts`) for consistent auth and JSON parsing.
 - Prewritten polls are file-backed to allow quick edits without DB schema changes.
 - Shared `PageShell` keeps page backdrops consistent and reduces duplicated UI scaffolding across views.
 
@@ -76,11 +77,12 @@ flowchart LR
   AttendeeUI --> PollAPI[/Poll API/]
   AttendeeUI --> VoteAPI[/Vote API/]
   ResultsUI --> PollAPI
-  AdminAPI --> PollService[Poll Service]
+  AdminAPI --> AdminRoute[Admin Route Helper]
+  AdminRoute --> PollService[Poll Service]
   PollAPI --> PollService
   VoteAPI --> PollService
   PollService --> KV[(Vercel KV)]
-  AdminAPI --> Presets[Prewritten Polls]
+  AdminRoute --> Presets[Prewritten Polls]
 ```
 
 ```mermaid
@@ -90,6 +92,7 @@ flowchart LR
     AttendeeUI2[app/page]
     ResultsUI2[app/results]
     AdminAPI2[app/api/admin/*]
+    AdminRoute2[app/api/admin/adminRoute.ts]
     PollAPI2[app/api/poll]
     VoteAPI2[app/api/vote]
     PollService2[lib/pollService.ts]
@@ -98,17 +101,18 @@ flowchart LR
     PageShell2[components/PageShell.tsx]
   end
   AdminUI2 --> AdminAPI2
+  AdminAPI2 --> AdminRoute2
   AttendeeUI2 --> PollAPI2
   AttendeeUI2 --> VoteAPI2
   ResultsUI2 --> PollAPI2
   AdminUI2 --> PageShell2
   AttendeeUI2 --> PageShell2
   ResultsUI2 --> PageShell2
-  AdminAPI2 --> PollService2
+  AdminRoute2 --> PollService2
   PollAPI2 --> PollService2
   VoteAPI2 --> PollService2
   PollService2 --> KV2[(Vercel KV)]
-  AdminAPI2 --> Presets2
+  AdminRoute2 --> Presets2
   Presets2 --> JSONFile[data/prewritten-polls.json]
 ```
 
