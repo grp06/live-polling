@@ -12,6 +12,8 @@
 
 ## 3. Domain Model and Modules
 - Poll domain (`lib/pollTypes.ts`, `lib/pollService.ts`): defines poll types, aggregates votes, manages active poll and history.
+- Poll validation (`lib/pollValidation.ts`): shared poll type/options normalization used by poll service and prewritten poll parsing.
+- Poll validation (`lib/pollValidation.ts`): shared poll type/options normalization used by poll service and prewritten poll parsing.
 - Client API helper (`lib/apiClient.ts`): standardizes client-side fetch + JSON error handling.
 - Admin API (`app/api/admin/*`): authorizes with `ADMIN_KEY`, shares authorization/parsing helpers in `app/api/admin/adminRoute.ts`, and orchestrates poll actions.
 - Attendee API (`app/api/poll`, `app/api/vote`): fetches state and records votes.
@@ -30,6 +32,7 @@
   - `app/results/`: projector/results UI.
 - `lib/`: domain logic, shared utilities, and hooks.
   - `lib/apiClient.ts`: client-side fetch + JSON error helper used by UI code.
+  - `lib/pollValidation.ts`: shared poll type/options validation helpers.
 - `components/`: shared UI components.
   - `components/PageShell.tsx`: shared page shell and decorative backdrop variants for primary views.
   - `components/ErrorBanner.tsx`: shared error banner used by primary pages.
@@ -67,6 +70,7 @@
 - Keep poll domain logic in `lib/pollService.ts` to share between API routes and tests.
 - Admin API uses shared helpers (`app/api/_utils.ts`, `app/api/admin/adminRoute.ts`) for consistent auth and JSON parsing.
 - Client UI fetches use `lib/apiClient.ts` to keep JSON error handling consistent.
+- Poll type/options validation is centralized in `lib/pollValidation.ts` to keep server-side rules consistent.
 - Prewritten polls are file-backed to allow quick edits without DB schema changes.
 - Shared `PageShell` keeps page backdrops consistent and reduces duplicated UI scaffolding across views.
 
@@ -85,10 +89,12 @@ flowchart LR
   ClientFetch --> VoteAPI[/Vote API/]
   AdminAPI --> AdminRoute[Admin Route Helper]
   AdminRoute --> PollService[Poll Service]
+  PollService --> PollValidation[Poll Validation]
   PollAPI --> PollService
   VoteAPI --> PollService
   PollService --> KV[(Vercel KV)]
   AdminRoute --> Presets[Prewritten Polls]
+  Presets --> PollValidation
 ```
 
 ```mermaid
@@ -104,7 +110,8 @@ flowchart LR
     VoteAPI2[app/api/vote]
     PollService2[lib/pollService.ts]
     PollTypes2[lib/pollTypes.ts]
-    Presets2[lib/prewrittenPolls.ts]
+  Presets2[lib/prewrittenPolls.ts]
+  PollValidation2[lib/pollValidation.ts]
     PageShell2[components/PageShell.tsx]
   end
   AdminUI2 --> ApiClient2
@@ -120,6 +127,8 @@ flowchart LR
   AdminRoute2 --> PollService2
   PollAPI2 --> PollService2
   VoteAPI2 --> PollService2
+  PollService2 --> PollValidation2
+  Presets2 --> PollValidation2
   PollService2 --> KV2[(Vercel KV)]
   AdminRoute2 --> Presets2
   Presets2 --> JSONFile[data/prewritten-polls.json]
