@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { PageShell } from "@/components/PageShell";
 import { usePollState } from "@/lib/hooks/usePollState";
 import { POLL_MAX, POLL_MIN } from "@/lib/pollTypes";
 
@@ -118,15 +119,7 @@ export default function Home() {
   );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)] text-[var(--ink)]">
-      <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rotate-6 rounded-[52px] bg-[var(--surface-strong)] opacity-70 animate-drift" />
-      <div className="pointer-events-none absolute -top-10 left-12 h-44 w-44 -rotate-6 rounded-[44px] bg-[var(--mist)] opacity-60 animate-drift" />
-      <div className="pointer-events-none absolute top-24 left-[-3rem] h-40 w-40 rotate-12 rounded-[40px] bg-[var(--surface-muted)] opacity-65 animate-drift" />
-      <div className="pointer-events-none absolute top-40 right-24 h-28 w-28 rotate-12 rounded-[32px] bg-[var(--sun)] opacity-55 animate-drift" />
-      <div className="pointer-events-none absolute bottom-20 right-[-2rem] h-36 w-36 -rotate-8 rounded-[36px] bg-[var(--surface-strong)] opacity-55 animate-drift" />
-      <div className="pointer-events-none absolute bottom-24 right-24 h-32 w-32 rotate-6 rounded-[32px] bg-[var(--sage)] opacity-50 animate-drift" />
-      <div className="pointer-events-none absolute bottom-[-6rem] left-[-4rem] h-72 w-72 -rotate-3 rounded-[52px] bg-[var(--accent-soft)] opacity-60 animate-drift" />
-      <div className="pointer-events-none absolute bottom-12 left-24 h-36 w-36 -rotate-12 rounded-[36px] bg-[var(--blush)] opacity-55 animate-drift" />
+    <PageShell variant="default">
       <main className="relative mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-14 md:px-10">
         <header>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ink-muted)]">
@@ -218,6 +211,6 @@ export default function Home() {
           </section>
         </div>
       </main>
-    </div>
+    </PageShell>
   );
 }
