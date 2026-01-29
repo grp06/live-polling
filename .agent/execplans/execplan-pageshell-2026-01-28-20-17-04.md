@@ -13,7 +13,7 @@ Unify the duplicated page shell and decorative background markup used by the att
 - [x] (2026-01-29 03:57Z) ExecPlan drafted from repo analysis.
 - [x] (2026-01-29 04:10Z) Add shared page shell component with backdrop variants and matching tests.
 - [x] (2026-01-29 04:10Z) Replace duplicated backdrop markup in attendee, results, and admin views with the shared component.
-- [ ] (2026-01-29 04:12Z) Run unit tests and manually verify pages render unchanged (completed: `npm test`; remaining: manual visual check in dev server).
+- [ ] (2026-01-29 04:15Z) Run unit tests and manually verify pages render unchanged (completed: `npm test`; remaining: manual visual check in dev server).
 - [x] (2026-01-29 04:20Z) Update `ARCHITECTURE.md` to document the shared `PageShell` component.
 
 ## Surprises & Discoveries
@@ -89,3 +89,4 @@ Include short before/after snippets of the page shell changes in your working no
 The shared component must be exported from `components/PageShell.tsx` and imported directly by the page components. No new external dependencies are required. The component should not introduce new CSS; it should reuse existing class names and animations from `app/globals.css`.
 
 Plan Change Log: Initial draft created on 2026-01-29.
+Plan Change Log: Updated progress timestamp after rerunning `npm test`; manual visual check still pending (2026-01-29).

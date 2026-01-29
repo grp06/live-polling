@@ -1,13 +1,13 @@
 # Current State
 
-Active execplan path: .agent/execplan-pending.md
+Active execplan path: .agent/done/2026-01-29-consolidate-api-route-helpers.md
 
 Last known failing tests summary:
-- `npm test` passes (note: expected console.error from `requireAdminKey` test).
+- `npm test` passes (expected console.error from `requireAdminKey` and `handleRouteError` tests).
 
 Next 1-3 concrete actions:
-1) Manually verify attendee, results, and admin pages render unchanged (per execplan acceptance).
-2) Move the completed execplan to `.agent/done` after manual verification.
+1) Commit the API helper consolidation changes.
+2) Confirm with the user that the manual smoke checks were completed (curl against local dev server).
 
 Temporary constraints:
 - None noted.
