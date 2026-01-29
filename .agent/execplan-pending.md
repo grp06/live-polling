@@ -14,6 +14,7 @@ Unify the duplicated page shell and decorative background markup used by the att
 - [x] (2026-01-29 04:10Z) Add shared page shell component with backdrop variants and matching tests.
 - [x] (2026-01-29 04:10Z) Replace duplicated backdrop markup in attendee, results, and admin views with the shared component.
 - [ ] (2026-01-29 04:12Z) Run unit tests and manually verify pages render unchanged (completed: `npm test`; remaining: manual visual check in dev server).
+- [x] (2026-01-29 04:20Z) Update `ARCHITECTURE.md` to document the shared `PageShell` component.
 
 ## Surprises & Discoveries
 
