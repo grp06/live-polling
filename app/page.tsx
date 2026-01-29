@@ -2,93 +2,28 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { POLL_MAX, POLL_MIN, type PollState } from "@/lib/pollTypes";
+import { usePollState } from "@/lib/hooks/usePollState";
+import { POLL_MAX, POLL_MIN } from "@/lib/pollTypes";
 
 const POLL_INTERVAL_MS = 1000;
 const VOTE_THROTTLE_MS = 200;
 const DEFAULT_SLIDER = 5;
 
 export default function Home() {
-  const [anonId, setAnonId] = useState<string | null>(null);
-  const [state, setState] = useState<PollState | null>(null);
+  const { anonId, state, error: pollError } = usePollState({
+    storageKey: "anonId",
+    pollIntervalMs: POLL_INTERVAL_MS,
+  });
+  const [error, setError] = useState<string | null>(null);
   const [sliderValue, setSliderValue] = useState(DEFAULT_SLIDER);
   const [choiceValue, setChoiceValue] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const pendingVoteRef = useRef<number | null>(null);
   const throttleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("anonId");
-    if (stored) {
-      setAnonId(stored);
-      return;
-    }
-    const id = crypto.randomUUID();
-    localStorage.setItem("anonId", id);
-    setAnonId(id);
-  }, []);
-
-  useEffect(() => {
-    if (!anonId) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadState = async () => {
-      try {
-        const response = await fetch(`/api/poll?anonId=${anonId}`);
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? "failed to load poll state");
-        }
-        const payload = (await response.json()) as PollState;
-        if (!cancelled) {
-          setState(payload);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : "unknown error";
-          setError(message);
-        }
-      }
-    };
-
-    loadState();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [anonId]);
-
-  useEffect(() => {
-    if (!anonId) {
-      return;
-    }
-
-    const timer = setInterval(() => {
-      void fetch(`/api/poll?anonId=${anonId}`)
-        .then(async (response) => {
-          if (!response.ok) {
-            const payload = (await response.json()) as { error?: string };
-            throw new Error(payload.error ?? "failed to load poll state");
-          }
-          return (await response.json()) as PollState;
-        })
-        .then((payload) => {
-          setState(payload);
-          setError(null);
-        })
-        .catch((err) => {
-          const message = err instanceof Error ? err.message : "unknown error";
-          setError(message);
-        });
-    }, POLL_INTERVAL_MS);
-
-    return () => clearInterval(timer);
-  }, [anonId]);
+    setError(pollError);
+  }, [pollError]);
 
   useEffect(() => {
     if (!state?.poll) {

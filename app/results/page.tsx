@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-
 import { PollHistory } from "@/components/PollHistory";
 import { PollResults } from "@/components/PollResults";
-import { POLL_MAX, POLL_MIN, type PollState } from "@/lib/pollTypes";
+import { usePollState } from "@/lib/hooks/usePollState";
+import { POLL_MAX, POLL_MIN } from "@/lib/pollTypes";
 
 const POLL_INTERVAL_MS = 1000;
 
@@ -12,66 +11,10 @@ const emptyHistogram = () =>
   Array.from({ length: POLL_MAX - POLL_MIN + 1 }, () => 0);
 
 export default function ResultsPage() {
-  const [anonId, setAnonId] = useState<string | null>(null);
-  const [state, setState] = useState<PollState | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("resultsAnonId");
-    if (stored) {
-      setAnonId(stored);
-      return;
-    }
-    const id = crypto.randomUUID();
-    localStorage.setItem("resultsAnonId", id);
-    setAnonId(id);
-  }, []);
-
-  const loadState = useCallback(async () => {
-    if (!anonId) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/poll?anonId=${anonId}`);
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to load poll state");
-      }
-      const payload = (await response.json()) as PollState;
-      setState(payload);
-      setError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "unknown error";
-      setError(message);
-    }
-  }, [anonId]);
-
-  useEffect(() => {
-    if (!anonId) {
-      return;
-    }
-    loadState();
-  }, [anonId, loadState]);
-
-  useEffect(() => {
-    if (!anonId) {
-      return;
-    }
-
-    let cancelled = false;
-    const timer = setInterval(() => {
-      if (cancelled) {
-        return;
-      }
-      void loadState();
-    }, POLL_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [anonId, loadState]);
+  const { state, error } = usePollState({
+    storageKey: "resultsAnonId",
+    pollIntervalMs: POLL_INTERVAL_MS,
+  });
 
   const histogram = state?.histogram ?? [];
   const count = state?.count ?? 0;

@@ -1,15 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { type PollState, type PrewrittenPoll } from "@/lib/pollTypes";
+import { usePollState } from "@/lib/hooks/usePollState";
+import { type PrewrittenPoll } from "@/lib/pollTypes";
 
 export function AdminClient() {
   const searchParams = useSearchParams();
   const [adminKey, setAdminKey] = useState<string | null>(null);
-  const [anonId, setAnonId] = useState<string | null>(null);
-  const [state, setState] = useState<PollState | null>(null);
+  const { state, error: pollError, refresh } = usePollState({
+    storageKey: "adminAnonId",
+  });
   const [question, setQuestion] = useState("");
   const [pollType, setPollType] = useState<"slider" | "multiple_choice">(
     "slider"
@@ -23,6 +25,10 @@ export function AdminClient() {
   useEffect(() => {
     setAdminKey(searchParams.get("key"));
   }, [searchParams]);
+
+  useEffect(() => {
+    setError(pollError);
+  }, [pollError]);
 
   useEffect(() => {
     if (!adminKey) {
@@ -66,43 +72,6 @@ export function AdminClient() {
       cancelled = true;
     };
   }, [adminKey]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("adminAnonId");
-    if (stored) {
-      setAnonId(stored);
-      return;
-    }
-    const id = crypto.randomUUID();
-    localStorage.setItem("adminAnonId", id);
-    setAnonId(id);
-  }, []);
-
-  const loadState = useCallback(async () => {
-    if (!anonId) {
-      return;
-    }
-    try {
-      const response = await fetch(`/api/poll?anonId=${anonId}`);
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to load poll state");
-      }
-      const payload = (await response.json()) as PollState;
-      setState(payload);
-      setError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "unknown error";
-      setError(message);
-    }
-  }, [anonId]);
-
-  useEffect(() => {
-    if (!anonId) {
-      return;
-    }
-    loadState();
-  }, [anonId, loadState]);
 
   const poll = state?.poll ?? null;
 
@@ -148,7 +117,7 @@ export function AdminClient() {
         throw new Error(payload.error ?? "failed to open poll");
       }
       setQuestion("");
-      await loadState();
+      await refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
       setError(message);
@@ -194,7 +163,7 @@ export function AdminClient() {
         const payload = (await response.json()) as { error?: string };
         throw new Error(payload.error ?? "failed to close poll");
       }
-      await loadState();
+      await refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
       setError(message);
@@ -225,7 +194,7 @@ export function AdminClient() {
         const payload = (await response.json()) as { error?: string };
         throw new Error(payload.error ?? "failed to clear polls");
       }
-      await loadState();
+      await refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
       setError(message);

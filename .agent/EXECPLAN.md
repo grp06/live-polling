@@ -11,25 +11,30 @@ After this change, the attendee page (`/`), the projector results page (`/result
 ## Progress
 
 - [x] (2026-01-29 02:53Z) Audited poll state flows and drafted this ExecPlan.
-- [ ] Implement shared hooks for anon id storage and poll state loading.
-- [ ] Refactor client pages to use the shared hook and remove duplicate polling code.
-- [ ] Add or update Jest tests for the shared hook and run the test suite.
+- [x] (2026-01-29 03:04Z) Implement shared hook for anon id storage and poll state loading in `lib/hooks/usePollState.ts`.
+- [x] (2026-01-29 03:04Z) Refactor `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx` to use the shared hook.
+- [x] (2026-01-29 03:04Z) Add `lib/__tests__/usePollState.test.ts` and run Jest (all tests pass).
 - [ ] Manually verify polling and admin actions in the browser.
 
 ## Surprises & Discoveries
 
 - Observation: Poll state fetching and error handling are duplicated across `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx`.
   Evidence: Each file issues `fetch(/api/poll?anonId=...)`, parses error payloads, and updates local error state.
+- Observation: Jest test matching only includes `**/__tests__/**/*.test.ts`, so hook tests must avoid JSX unless the extension changes.
+  Evidence: Initial JSX in `lib/__tests__/usePollState.test.ts` failed to parse until converted to `React.createElement` calls.
 
 ## Decision Log
 
 - Decision: Centralize anon-id storage and poll state fetching in a shared React hook that can optionally poll on an interval.
   Rationale: This removes three nearly identical fetch flows and reduces the risk of divergent behavior while touching a small, testable surface area.
   Date/Author: 2026-01-29 / Codex
+- Decision: Keep page-level error state for user actions and sync it from the hook's error output to preserve existing behavior.
+  Rationale: Vote/admin errors should still surface immediately, but polling success should clear them just as before.
+  Date/Author: 2026-01-29 / Codex
 
 ## Outcomes & Retrospective
 
-- Not started yet.
+- Completed the hook refactor and test coverage; all Jest tests pass. Manual browser validation remains.
 
 ## Context and Orientation
 
@@ -116,3 +121,5 @@ In `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx`, repl
 If you need a polling interval helper, keep it inside the hook; do not create a separate utility unless reuse demands it.
 
 At the end of this ExecPlan, update the `Progress`, `Decision Log`, and `Outcomes & Retrospective` sections to reflect work completed and any changes in direction.
+
+Plan update note: Updated progress, discoveries, decisions, and outcomes after implementing the shared poll-state hook, refactoring client pages, and running Jest to confirm passing tests.
