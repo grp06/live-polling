@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageShell } from "@/components/PageShell";
 import { usePollState } from "@/lib/hooks/usePollState";
 import { POLL_MAX, POLL_MIN } from "@/lib/pollTypes";
@@ -127,11 +128,7 @@ export default function Home() {
           </p>
         </header>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        ) : null}
+        {error ? <ErrorBanner message={error} /> : null}
 
         <div className="grid gap-8">
           <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-6 py-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-8">

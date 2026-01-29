@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageShell } from "@/components/PageShell";
 import { PollHistory } from "@/components/PollHistory";
 import { PollResults } from "@/components/PollResults";
@@ -36,11 +37,7 @@ export default function ResultsPage() {
           </h1>
         </section>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        ) : null}
+        {error ? <ErrorBanner message={error} /> : null}
 
         <section className="flex items-start pt-3 md:pt-4">
           <div className="w-full animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] px-5 py-5 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:px-8 md:py-8">

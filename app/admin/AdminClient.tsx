@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageShell } from "@/components/PageShell";
 import { usePollState } from "@/lib/hooks/usePollState";
 import { type PrewrittenPoll } from "@/lib/pollTypes";
@@ -245,11 +246,7 @@ export function AdminClient() {
           </p>
         </header>
 
-        {error ? (
-          <div className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        ) : null}
+        {error ? <ErrorBanner message={error} /> : null}
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <section className="animate-rise rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_1px_0_rgba(31,26,22,0.08)] md:p-8">
