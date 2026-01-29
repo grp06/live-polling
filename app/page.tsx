@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageShell } from "@/components/PageShell";
+import { fetchJson } from "@/lib/apiClient";
 import { usePollState } from "@/lib/hooks/usePollState";
 import { POLL_MAX, POLL_MIN } from "@/lib/pollTypes";
 
@@ -66,21 +67,21 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch("/api/vote", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchJson(
+        "/api/vote",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            anonId,
+            pollId: poll.id,
+            value,
+          }),
         },
-        body: JSON.stringify({
-          anonId,
-          pollId: poll.id,
-          value,
-        }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to submit vote");
-      }
+        { errorMessage: "failed to submit vote" }
+      );
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";

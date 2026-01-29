@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageShell } from "@/components/PageShell";
+import { fetchJson } from "@/lib/apiClient";
 import { usePollState } from "@/lib/hooks/usePollState";
 import { type PrewrittenPoll } from "@/lib/pollTypes";
 
@@ -43,16 +44,11 @@ export function AdminClient() {
 
     const loadPresets = async () => {
       try {
-        const response = await fetch(
-          `/api/admin/presets?key=${encodeURIComponent(adminKey)}`
+        const payload = await fetchJson<{ polls?: PrewrittenPoll[] }>(
+          `/api/admin/presets?key=${encodeURIComponent(adminKey)}`,
+          undefined,
+          { errorMessage: "failed to load presets" }
         );
-        const payload = (await response.json()) as {
-          polls?: PrewrittenPoll[];
-          error?: string;
-        };
-        if (!response.ok) {
-          throw new Error(payload.error ?? "failed to load presets");
-        }
         if (!Array.isArray(payload.polls)) {
           throw new Error("invalid presets response");
         }
@@ -99,25 +95,25 @@ export function AdminClient() {
 
     setBusy(true);
     try {
-      const response = await fetch("/api/admin/open", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchJson(
+        "/api/admin/open",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: adminKey,
+            question: trimmed,
+            type: pollType,
+            options:
+              pollType === "multiple_choice"
+                ? options.map((option) => option.trim())
+                : undefined,
+          }),
         },
-        body: JSON.stringify({
-          key: adminKey,
-          question: trimmed,
-          type: pollType,
-          options:
-            pollType === "multiple_choice"
-              ? options.map((option) => option.trim())
-              : undefined,
-        }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to open poll");
-      }
+        { errorMessage: "failed to open poll" }
+      );
       setQuestion("");
       await refresh();
     } catch (err) {
@@ -154,17 +150,17 @@ export function AdminClient() {
 
     setBusy(true);
     try {
-      const response = await fetch("/api/admin/close", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchJson(
+        "/api/admin/close",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ key: adminKey }),
         },
-        body: JSON.stringify({ key: adminKey }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to close poll");
-      }
+        { errorMessage: "failed to close poll" }
+      );
       await refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
@@ -185,17 +181,17 @@ export function AdminClient() {
 
     setBusy(true);
     try {
-      const response = await fetch("/api/admin/clear", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await fetchJson(
+        "/api/admin/clear",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ key: adminKey }),
         },
-        body: JSON.stringify({ key: adminKey }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "failed to clear polls");
-      }
+        { errorMessage: "failed to clear polls" }
+      );
       await refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";

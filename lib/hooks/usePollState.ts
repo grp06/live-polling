@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { fetchJson } from "../apiClient";
 import { type PollState } from "../pollTypes";
 
 type UsePollStateOptions = {
@@ -49,13 +50,11 @@ export function usePollState({
     }
 
     try {
-      const response = await fetch(`/api/poll?anonId=${anonId}`);
-      const payload = (await response.json()) as PollState & {
-        error?: string;
-      };
-      if (!response.ok) {
-        throw new Error(payload.error ?? "failed to load poll state");
-      }
+      const payload = await fetchJson<PollState>(
+        `/api/poll?anonId=${anonId}`,
+        undefined,
+        { errorMessage: "failed to load poll state" }
+      );
       if (!isActiveRef.current) {
         return;
       }
