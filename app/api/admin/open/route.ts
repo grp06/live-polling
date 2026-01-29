@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { openPoll } from "@/lib/pollService";
+import { ensureAuthorized, parseJson, requireAdminKey } from "../_utils";
 
 type OpenPayload = {
   key: string;
@@ -10,25 +11,25 @@ type OpenPayload = {
 };
 
 export async function POST(request: Request) {
-  let body: OpenPayload;
-  try {
-    body = (await request.json()) as OpenPayload;
-  } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
+  const adminKeyResult = requireAdminKey();
+  if (!adminKeyResult.ok) {
+    return adminKeyResult.response;
   }
 
-  const adminKey = process.env.ADMIN_KEY;
-  if (!adminKey) {
-    console.error("ADMIN_KEY is not configured");
-    return NextResponse.json(
-      { error: "admin key not configured" },
-      { status: 500 }
-    );
+  const bodyResult = await parseJson<OpenPayload>(request);
+  if (!bodyResult.ok) {
+    return bodyResult.response;
   }
 
-  if (!body?.key || body.key !== adminKey) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const unauthorized = ensureAuthorized(
+    bodyResult.data?.key,
+    adminKeyResult.adminKey
+  );
+  if (unauthorized) {
+    return unauthorized;
   }
+
+  const body = bodyResult.data;
   if (!body?.question || !body.question.trim()) {
     return NextResponse.json({ error: "question is required" }, { status: 400 });
   }

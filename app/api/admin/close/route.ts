@@ -1,30 +1,29 @@
 import { NextResponse } from "next/server";
 
 import { closePoll } from "@/lib/pollService";
+import { ensureAuthorized, parseJson, requireAdminKey } from "../_utils";
 
 type ClosePayload = {
   key: string;
 };
 
 export async function POST(request: Request) {
-  let body: ClosePayload;
-  try {
-    body = (await request.json()) as ClosePayload;
-  } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
+  const adminKeyResult = requireAdminKey();
+  if (!adminKeyResult.ok) {
+    return adminKeyResult.response;
   }
 
-  const adminKey = process.env.ADMIN_KEY;
-  if (!adminKey) {
-    console.error("ADMIN_KEY is not configured");
-    return NextResponse.json(
-      { error: "admin key not configured" },
-      { status: 500 }
-    );
+  const bodyResult = await parseJson<ClosePayload>(request);
+  if (!bodyResult.ok) {
+    return bodyResult.response;
   }
 
-  if (!body?.key || body.key !== adminKey) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const unauthorized = ensureAuthorized(
+    bodyResult.data?.key,
+    adminKeyResult.adminKey
+  );
+  if (unauthorized) {
+    return unauthorized;
   }
 
   try {

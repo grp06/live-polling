@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
 
 import { loadPrewrittenPolls } from "@/lib/prewrittenPolls";
+import { ensureAuthorized, requireAdminKey } from "../_utils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
 
-  const adminKey = process.env.ADMIN_KEY;
-  if (!adminKey) {
-    console.error("ADMIN_KEY is not configured");
-    return NextResponse.json(
-      { error: "admin key not configured" },
-      { status: 500 }
-    );
+  const adminKeyResult = requireAdminKey();
+  if (!adminKeyResult.ok) {
+    return adminKeyResult.response;
   }
 
-  if (!key || key !== adminKey) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const unauthorized = ensureAuthorized(key, adminKeyResult.adminKey);
+  if (unauthorized) {
+    return unauthorized;
   }
 
   try {

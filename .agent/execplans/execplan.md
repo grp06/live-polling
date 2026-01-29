@@ -1,4 +1,4 @@
-# Consolidate poll state fetching and polling into a shared hook
+# Consolidate admin API auth and JSON parsing
 
 This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
@@ -6,67 +6,78 @@ If a PLANS.md file is checked into the repo, follow it exactly. The governing do
 
 ## Purpose / Big Picture
 
-After this change, the attendee page (`/`), the projector results page (`/results`), and the admin console (`/admin`) all use a shared hook to load poll state, handle errors, and optionally poll on a fixed interval. This removes duplicated fetch logic while preserving the current UI and network behavior (same API endpoints, same polling cadence). You can see it working by running the dev server and confirming all three pages still load poll state and update live as before, and by running the Jest suite to confirm the polling test still passes.
+After this change, all admin API routes (`/api/admin/open`, `/api/admin/close`, `/api/admin/clear`, `/api/admin/presets`) share a single, consistent path for validating `ADMIN_KEY` and parsing JSON payloads. This removes duplicated auth logic, fixes the current inconsistency where `clear` skips `ADMIN_KEY` configuration checks and JSON parsing errors, and makes future changes (like rotating the admin key or improving error messaging) a one-file update. You can see it working by running Jest tests for the helper and by manually calling the admin endpoints to confirm consistent 401/400/500 responses across routes.
 
 ## Progress
 
-- [x] (2026-01-29 02:53Z) Audited poll state flows and drafted this ExecPlan.
-- [x] (2026-01-29 03:04Z) Implement shared hook for anon id storage and poll state loading in `lib/hooks/usePollState.ts`.
-- [x] (2026-01-29 03:04Z) Refactor `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx` to use the shared hook.
-- [x] (2026-01-29 03:04Z) Add `lib/__tests__/usePollState.test.ts` and run Jest (all tests pass).
-- [ ] Manually verify polling and admin actions in the browser.
+- [x] (2026-01-29 03:25Z) Write failing Jest tests for the admin API helper (missing `ADMIN_KEY`, unauthorized key, invalid JSON); tests fail due to missing `app/api/admin/_utils.ts`.
+- [x] (2026-01-29 03:29Z) Implement the helper in `app/api/admin/_utils.ts` and refactor admin routes to use it.
+- [x] (2026-01-29 03:29Z) Run Jest (all tests pass).
+- [ ] (2026-01-29 03:29Z) Manually smoke-test admin endpoints for consistent error responses.
 
 ## Surprises & Discoveries
 
-- Observation: Poll state fetching and error handling are duplicated across `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx`.
-  Evidence: Each file issues `fetch(/api/poll?anonId=...)`, parses error payloads, and updates local error state.
-- Observation: Jest test matching only includes `**/__tests__/**/*.test.ts`, so hook tests must avoid JSX unless the extension changes.
-  Evidence: Initial JSX in `lib/__tests__/usePollState.test.ts` failed to parse until converted to `React.createElement` calls.
+- Observation: Admin auth checks are duplicated across `app/api/admin/open/route.ts`, `app/api/admin/close/route.ts`, and `app/api/admin/presets/route.ts`.
+  Evidence: Each file reads `process.env.ADMIN_KEY`, logs missing configuration, and returns 401 for mismatched keys.
+- Observation: `app/api/admin/clear/route.ts` skips the missing-`ADMIN_KEY` check and does not guard JSON parsing.
+  Evidence: The route reads `request.json()` without try/catch and compares directly to `process.env.ADMIN_KEY`.
 
 ## Decision Log
 
-- Decision: Centralize anon-id storage and poll state fetching in a shared React hook that can optionally poll on an interval.
-  Rationale: This removes three nearly identical fetch flows and reduces the risk of divergent behavior while touching a small, testable surface area.
+- Decision: Centralize admin auth and JSON parsing in `app/api/admin/_utils.ts` and keep route-specific validation (like poll question and options) in the route files.
+  Rationale: This removes duplicated auth behavior without obscuring the unique validation logic each route needs.
   Date/Author: 2026-01-29 / Codex
-- Decision: Keep page-level error state for user actions and sync it from the hook's error output to preserve existing behavior.
-  Rationale: Vote/admin errors should still surface immediately, but polling success should clear them just as before.
+- Decision: Preserve existing error messages and status codes where possible, and align `clear` with the other admin routes for missing `ADMIN_KEY` and invalid JSON.
+  Rationale: Consistency reduces surprises for the admin UI and keeps behavior predictable.
   Date/Author: 2026-01-29 / Codex
 
 ## Outcomes & Retrospective
 
-- Completed the hook refactor and test coverage; all Jest tests pass. Manual browser validation remains.
+- Implemented the admin helper and refactored all admin routes; Jest suite passes. Manual smoke test still pending.
 
 ## Context and Orientation
 
-This is a Next.js App Router repo. Poll state is exposed via `app/api/poll/route.ts`, which returns a `PollState` shape defined in `lib/pollTypes.ts`. Client pages use that endpoint to load state and render UI:
+This is a Next.js App Router repository. Admin-only endpoints live under `app/api/admin/`:
 
-- `app/page.tsx` (attendee UI) loads poll state, polls every second, and submits votes.
-- `app/results/page.tsx` (projector UI) loads poll state and polls every second.
-- `app/admin/AdminClient.tsx` loads poll state on demand and after admin actions.
+- `app/api/admin/open/route.ts` opens a poll via `lib/pollService.ts`.
+- `app/api/admin/close/route.ts` closes the active poll via `lib/pollService.ts`.
+- `app/api/admin/clear/route.ts` clears the active poll and history via `lib/pollService.ts`.
+- `app/api/admin/presets/route.ts` reads JSON presets from `lib/prewrittenPolls.ts`.
 
-Anonymous IDs are stored in `localStorage` with page-specific keys (`anonId`, `resultsAnonId`, `adminAnonId`). The refactor keeps those keys unchanged so existing browsers continue to work.
+All admin endpoints rely on `process.env.ADMIN_KEY` and reject requests when the provided `key` does not match. The code currently duplicates that check in multiple files, and one route (`clear`) diverges by skipping the missing-key check and JSON parse guards.
 
-Run Logs: `/Users/georgepickett/live-polling/.agent/journal`.
+Run Logs: `/Users/georgepickett/live-polling/.agent/run-logs`
 
 ## Plan of Work
 
-Create a shared client hook under `lib/hooks/` that owns two responsibilities: creating or reusing the anon id in `localStorage`, and fetching poll state from `/api/poll` with consistent error handling. The hook should expose the current `PollState`, any error message, and a `refresh` function. It should also accept an optional polling interval so caller pages can opt into `setInterval` polling without reimplementing it.
+Create a small helper module in `app/api/admin/_utils.ts` that owns two responsibilities: (1) resolving `ADMIN_KEY` and returning a consistent error response when it is missing, and (2) parsing JSON request bodies with a consistent 400 response when JSON is invalid. Add a helper to check the provided admin key and return a 401 response when unauthorized. Keep route-specific validation inside each route (for example, poll question/options validation in `open`).
 
-Refactor `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx` to use the new hook. For the attendee and results pages, enable the 1-second polling interval to preserve existing behavior. For the admin client, disable interval polling and call `refresh` after open/close/clear actions, matching current on-demand updates.
+Refactor each admin route to use the helper functions. Ensure the `clear` route now mirrors the same missing-`ADMIN_KEY` behavior as the other routes, and that invalid JSON is handled with the same 400 response that `open` and `close` already emit.
 
-Add a focused Jest test for the hook to confirm it performs an initial fetch, respects the polling interval, and uses the intended `localStorage` key. Keep the existing `app/__tests__/resultsPolling.test.ts` passing; update it only if the hook changes how many fetches occur per interval.
+Add Jest tests for the helper module to lock in the new behavior. The tests should fail before the helper exists and pass once implemented. Use local `Request` instances and mock `process.env.ADMIN_KEY` as needed. Avoid network calls.
 
 ## Concrete Steps
 
-From the repo root (`/Users/georgepickett/live-polling`), create the new hook files and refactor the three client pages. Then add or adjust tests.
+From the repo root (`/Users/georgepickett/live-polling`), add a new test file and write failing tests first:
 
-Run the focused polling test:
+    mkdir -p app/api/admin/__tests__
+    $EDITOR app/api/admin/__tests__/adminUtils.test.ts
 
-    npm test -- --runTestsByPath app/__tests__/resultsPolling.test.ts
+Then implement the helper and refactor the routes:
+
+    $EDITOR app/api/admin/_utils.ts
+    $EDITOR app/api/admin/open/route.ts
+    $EDITOR app/api/admin/close/route.ts
+    $EDITOR app/api/admin/clear/route.ts
+    $EDITOR app/api/admin/presets/route.ts
+
+Run the focused tests:
+
+    npm test -- --runTestsByPath app/api/admin/__tests__/adminUtils.test.ts
 
 Expected output includes:
 
-    PASS app/__tests__/resultsPolling.test.ts
+    PASS app/api/admin/__tests__/adminUtils.test.ts
 
 Run the full Jest suite:
 
@@ -74,52 +85,45 @@ Run the full Jest suite:
 
 Expected output includes only PASS lines and a zero exit code.
 
-If manual validation is desired, start the dev server:
-
-    npm run dev
-
-Then visit `/`, `/results`, and `/admin?key=...` and confirm polling behavior and admin actions still work.
+Optionally, manually smoke-test the admin endpoints by running `npm run dev` and calling the routes with valid and invalid `?key=` or JSON payloads; confirm consistent 401/400/500 responses and unchanged success payloads.
 
 ## Validation and Acceptance
 
-The refactor is accepted when all of the following are true:
+This refactor is accepted when all of the following are true:
 
-- The attendee page and results page both poll `/api/poll` every 1000 ms and update UI as before.
-- The admin page loads poll state on first render and after open/close/clear actions without introducing interval polling.
-- `localStorage` keys remain `anonId`, `resultsAnonId`, and `adminAnonId`.
-- Jest tests pass, including the existing results polling test and the new hook test.
-- Manual checks confirm: open a poll from `/admin`, see live updates on `/` and `/results`, close the poll, and see history updates.
+- All admin endpoints return a 500 response with `{ error: "admin key not configured" }` when `ADMIN_KEY` is missing.
+- All admin endpoints return a 401 response with `{ error: "unauthorized" }` when the provided key is missing or incorrect.
+- JSON parsing errors return a 400 response with `{ error: "invalid json" }` for routes that expect a body (`open`, `close`, `clear`).
+- Route-specific validation (like poll type/options in `open`) continues to behave as it does today.
+- Jest tests pass, including the new admin helper tests.
 
 ## Idempotence and Recovery
 
-This refactor is code-only and safe to repeat. If a step goes wrong, revert the affected files to the previous commit and re-apply the changes. No data migrations or external services are involved.
+This refactor is code-only and safe to repeat. If an edit goes wrong, revert the affected route and helper files to their previous state and rerun the tests. No data migrations or external services are involved.
 
 ## Artifacts and Notes
 
-Example hook signature to implement:
+Example helper usage to aim for:
 
-    type UsePollStateOptions = {
-      storageKey: string;
-      pollIntervalMs?: number | null;
-    };
+    const adminKeyResult = requireAdminKey();
+    if (!adminKeyResult.ok) return adminKeyResult.response;
 
-    type UsePollStateResult = {
-      anonId: string | null;
-      state: PollState | null;
-      error: string | null;
-      refresh: () => Promise<void>;
-    };
+    const bodyResult = await parseJson<OpenPayload>(request);
+    if (!bodyResult.ok) return bodyResult.response;
 
-    export function usePollState(options: UsePollStateOptions): UsePollStateResult;
+    const unauthorized = ensureAuthorized(bodyResult.data.key, adminKeyResult.adminKey);
+    if (unauthorized) return unauthorized;
+
+Keep helper usage small and direct; avoid introducing new abstractions beyond auth and JSON parsing.
 
 ## Interfaces and Dependencies
 
-Create `lib/hooks/usePollState.ts` (and `lib/hooks/useAnonId.ts` if you prefer to separate concerns). The hook must use the browser `fetch` API and the `PollState` type from `lib/pollTypes.ts`. It must not introduce new dependencies; stay within React hooks and existing utilities. The hook must call `/api/poll?anonId=${anonId}` and preserve the current error handling semantics (read `{ error?: string }` from JSON when `response.ok` is false, and set a human-readable message in state).
+Create `app/api/admin/_utils.ts` with small, focused helpers. The exact names can vary, but the module must provide:
 
-In `app/page.tsx`, `app/results/page.tsx`, and `app/admin/AdminClient.tsx`, replace the duplicated `useEffect` + `fetch` logic with the hook, keeping existing UI logic and vote submission unchanged.
+- A function to resolve `ADMIN_KEY` and return a `NextResponse` error when missing.
+- A function to parse JSON safely and return a `NextResponse` error on invalid JSON.
+- A function to validate the provided admin key and return a 401 `NextResponse` when unauthorized.
 
-If you need a polling interval helper, keep it inside the hook; do not create a separate utility unless reuse demands it.
+Use `NextResponse` from `next/server` for all responses. Do not add new dependencies. Route files should continue to call `openPoll`, `closePoll`, `clearAllPolls`, and `loadPrewrittenPolls` exactly as they do today.
 
-At the end of this ExecPlan, update the `Progress`, `Decision Log`, and `Outcomes & Retrospective` sections to reflect work completed and any changes in direction.
-
-Plan update note: Updated progress, discoveries, decisions, and outcomes after implementing the shared poll-state hook, refactoring client pages, and running Jest to confirm passing tests.
+Plan update note: Updated progress and outcomes after implementing the helper, refactoring admin routes, and running Jest.
