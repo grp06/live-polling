@@ -13,7 +13,7 @@ After this change, all admin API routes (`/api/admin/open`, `/api/admin/close`, 
 - [x] (2026-01-29 03:25Z) Write failing Jest tests for the admin API helper (missing `ADMIN_KEY`, unauthorized key, invalid JSON); tests fail due to missing `app/api/admin/_utils.ts`.
 - [x] (2026-01-29 03:29Z) Implement the helper in `app/api/admin/_utils.ts` and refactor admin routes to use it.
 - [x] (2026-01-29 03:29Z) Run Jest (all tests pass).
-- [ ] (2026-01-29 03:29Z) Manually smoke-test admin endpoints for consistent error responses.
+- [x] (2026-01-29 03:32Z) Manually smoke-test admin endpoints for consistent error responses (401 for bad key, 400 for invalid JSON).
 
 ## Surprises & Discoveries
 
@@ -33,7 +33,7 @@ After this change, all admin API routes (`/api/admin/open`, `/api/admin/close`, 
 
 ## Outcomes & Retrospective
 
-- Implemented the admin helper and refactored all admin routes; Jest suite passes. Manual smoke test still pending.
+- Implemented the admin helper and refactored all admin routes; Jest suite passes and manual smoke checks confirmed expected 401/400 responses.
 
 ## Context and Orientation
 
@@ -126,4 +126,4 @@ Create `app/api/admin/_utils.ts` with small, focused helpers. The exact names ca
 
 Use `NextResponse` from `next/server` for all responses. Do not add new dependencies. Route files should continue to call `openPoll`, `closePoll`, `clearAllPolls`, and `loadPrewrittenPolls` exactly as they do today.
 
-Plan update note: Updated progress and outcomes after implementing the helper, refactoring admin routes, and running Jest.
+Plan update note: Marked manual smoke-test as complete and updated outcomes to reflect endpoint checks.
