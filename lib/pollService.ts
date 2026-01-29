@@ -21,6 +21,7 @@ import {
   POLL_MIN,
   keyVotes,
 } from "./pollTypes";
+import { normalizeOptions, requirePollType } from "./pollValidation";
 
 const HISTORY_LIMIT = 20;
 
@@ -48,9 +49,15 @@ export async function openPoll(
     await closePoll();
   }
 
-  const pollType = ensurePollType(type);
+  const pollType = requirePollType(type, "invalid poll type");
   const pollOptions =
-    pollType === "multiple_choice" ? normalizeOptions(options) : undefined;
+    pollType === "multiple_choice"
+      ? normalizeOptions(options, {
+          missing: "options are required",
+          nonString: "options must be strings",
+          minCount: "at least two options are required",
+        })
+      : undefined;
 
   const poll: ActivePoll = {
     id: randomUUID(),
@@ -274,26 +281,6 @@ function parseChoiceVote(raw: string, optionCount: number): number {
     throw new Error(`option index out of range: ${raw}`);
   }
   return parsed;
-}
-
-function normalizeOptions(options?: string[]): string[] {
-  if (!options) {
-    throw new Error("options are required");
-  }
-  const normalized = options
-    .map((option) => option.trim())
-    .filter((option) => option.length > 0);
-  if (normalized.length < 2) {
-    throw new Error("at least two options are required");
-  }
-  return normalized;
-}
-
-function ensurePollType(type: PollType): PollType {
-  if (type !== "slider" && type !== "multiple_choice") {
-    throw new Error("invalid poll type");
-  }
-  return type;
 }
 
 function requireOptions(poll: ActivePoll): string[] {

@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { type PollType, type PrewrittenPoll } from "./pollTypes";
+import { type PrewrittenPoll } from "./pollTypes";
+import { normalizeOptions, requirePollType } from "./pollValidation";
 
 const PREWRITTEN_POLLS_PATH = path.join(
   process.cwd(),
@@ -63,7 +64,10 @@ function normalizePreset(
     throw new Error(`prewritten poll at index ${index} is missing question`);
   }
 
-  const type = normalizePollType(record.type, index);
+  const type = requirePollType(
+    record.type,
+    `prewritten poll at index ${index} has invalid poll type`
+  );
 
   const poll: PrewrittenPoll = {
     id,
@@ -72,32 +76,13 @@ function normalizePreset(
   };
 
   if (type === "multiple_choice") {
-    if (!Array.isArray(record.options)) {
-      throw new Error(`prewritten poll at index ${index}: options are required`);
-    }
-    if (!record.options.every((option) => typeof option === "string")) {
-      throw new Error(
-        `prewritten poll at index ${index} options must be strings`
-      );
-    }
-    const normalized = record.options
-      .map((option) => option.trim())
-      .filter((option) => option.length > 0);
-    if (normalized.length < 2) {
-      throw new Error(
-        `prewritten poll at index ${index}: at least two options are required`
-      );
-    }
-    poll.options = normalized;
+    poll.options = normalizeOptions(record.options, {
+      missing: `prewritten poll at index ${index}: options are required`,
+      nonString: `prewritten poll at index ${index} options must be strings`,
+      minCount: `prewritten poll at index ${index}: at least two options are required`,
+    });
   }
 
   seenIds.add(id);
   return poll;
-}
-
-function normalizePollType(value: unknown, index: number): PollType {
-  if (value === "slider" || value === "multiple_choice") {
-    return value;
-  }
-  throw new Error(`prewritten poll at index ${index} has invalid poll type`);
 }
