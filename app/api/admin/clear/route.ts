@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { ensureAuthorized, parseJson, requireAdminKey } from "@/app/api/_utils";
+import { parseAdminJson } from "@/app/api/admin/adminRoute";
 import { clearAllPolls } from "@/lib/pollService";
 
 export async function POST(request: Request) {
-  const adminKeyResult = requireAdminKey();
-  if (!adminKeyResult.ok) {
-    return adminKeyResult.response;
-  }
-
-  const payloadResult = await parseJson<{ key?: string }>(request);
-  if (!payloadResult.ok) {
-    return payloadResult.response;
-  }
-
-  const unauthorized = ensureAuthorized(
-    payloadResult.data?.key,
-    adminKeyResult.adminKey
-  );
-  if (unauthorized) {
-    return unauthorized;
+  const parsed = await parseAdminJson<{ key?: string }>(request);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   await clearAllPolls();

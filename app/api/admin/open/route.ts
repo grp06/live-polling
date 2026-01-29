@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { ensureAuthorized, handleRouteError, parseJson, requireAdminKey } from "@/app/api/_utils";
+import { handleRouteError } from "@/app/api/_utils";
+import { parseAdminJson } from "@/app/api/admin/adminRoute";
 import { openPoll } from "@/lib/pollService";
 
 type OpenPayload = {
@@ -11,25 +12,12 @@ type OpenPayload = {
 };
 
 export async function POST(request: Request) {
-  const adminKeyResult = requireAdminKey();
-  if (!adminKeyResult.ok) {
-    return adminKeyResult.response;
+  const parsed = await parseAdminJson<OpenPayload>(request);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
-  const bodyResult = await parseJson<OpenPayload>(request);
-  if (!bodyResult.ok) {
-    return bodyResult.response;
-  }
-
-  const unauthorized = ensureAuthorized(
-    bodyResult.data?.key,
-    adminKeyResult.adminKey
-  );
-  if (unauthorized) {
-    return unauthorized;
-  }
-
-  const body = bodyResult.data;
+  const body = parsed.data;
   if (!body?.question || !body.question.trim()) {
     return NextResponse.json({ error: "question is required" }, { status: 400 });
   }

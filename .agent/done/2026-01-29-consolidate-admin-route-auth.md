@@ -11,9 +11,9 @@ Reduce duplicated admin-route boilerplate by centralizing admin-key lookup, auth
 ## Progress
 
 - [x] (2026-01-29 00:00Z) Repo analysis completed and consolidation target selected.
-- [ ] Add failing Jest tests for the new admin parsing helper (JSON body + query key cases).
-- [ ] Implement the shared admin parsing helper and update admin routes to use it.
-- [ ] Run Jest and confirm admin routes still return the same status codes and error payloads.
+- [x] (2026-01-29 01:00Z) Added failing Jest tests for the new admin parsing helper (JSON body + query key cases).
+- [x] (2026-01-29 01:10Z) Implemented shared admin parsing helper and refactored admin routes to use it.
+- [x] (2026-01-29 01:20Z) Ran Jest and confirmed admin route tests pass with existing error payloads.
 
 ## Surprises & Discoveries
 
@@ -28,7 +28,7 @@ Reduce duplicated admin-route boilerplate by centralizing admin-key lookup, auth
 
 ## Outcomes & Retrospective
 
-No implementation has occurred yet.
+Admin routes now share a single authorization/parsing flow via `app/api/admin/adminRoute.ts`, reducing repeated logic while preserving existing error responses. Jest passes across all suites, including new coverage for the helper. No endpoint behavior changes were observed in tests.
 
 ## Context and Orientation
 

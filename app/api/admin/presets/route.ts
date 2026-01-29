@@ -1,20 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { ensureAuthorized, handleRouteError, requireAdminKey } from "@/app/api/_utils";
+import { handleRouteError } from "@/app/api/_utils";
+import { parseAdminQuery } from "@/app/api/admin/adminRoute";
 import { loadPrewrittenPolls } from "@/lib/prewrittenPolls";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  const adminKeyResult = requireAdminKey();
-  if (!adminKeyResult.ok) {
-    return adminKeyResult.response;
-  }
-
-  const unauthorized = ensureAuthorized(key, adminKeyResult.adminKey);
-  if (unauthorized) {
-    return unauthorized;
+  const parsed = parseAdminQuery(request);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {

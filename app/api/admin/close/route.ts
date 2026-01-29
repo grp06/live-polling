@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { ensureAuthorized, handleRouteError, parseJson, requireAdminKey } from "@/app/api/_utils";
+import { handleRouteError } from "@/app/api/_utils";
+import { parseAdminJson } from "@/app/api/admin/adminRoute";
 import { closePoll } from "@/lib/pollService";
 
 type ClosePayload = {
@@ -8,22 +9,9 @@ type ClosePayload = {
 };
 
 export async function POST(request: Request) {
-  const adminKeyResult = requireAdminKey();
-  if (!adminKeyResult.ok) {
-    return adminKeyResult.response;
-  }
-
-  const bodyResult = await parseJson<ClosePayload>(request);
-  if (!bodyResult.ok) {
-    return bodyResult.response;
-  }
-
-  const unauthorized = ensureAuthorized(
-    bodyResult.data?.key,
-    adminKeyResult.adminKey
-  );
-  if (unauthorized) {
-    return unauthorized;
+  const parsed = await parseAdminJson<ClosePayload>(request);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
