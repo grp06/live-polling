@@ -12,6 +12,7 @@
 
 ## 3. Domain Model and Modules
 - Poll domain (`lib/pollTypes.ts`, `lib/pollService.ts`): defines poll types, aggregates votes, manages active poll and history.
+- Client API helper (`lib/apiClient.ts`): standardizes client-side fetch + JSON error handling.
 - Admin API (`app/api/admin/*`): authorizes with `ADMIN_KEY`, shares authorization/parsing helpers in `app/api/admin/adminRoute.ts`, and orchestrates poll actions.
 - Attendee API (`app/api/poll`, `app/api/vote`): fetches state and records votes.
 - Presets (`lib/prewrittenPolls.ts`, `data/prewritten-polls.json`): optional prewritten poll list loaded by admin UI.
@@ -28,6 +29,7 @@
   - `app/admin/`: admin UI.
   - `app/results/`: projector/results UI.
 - `lib/`: domain logic, shared utilities, and hooks.
+  - `lib/apiClient.ts`: client-side fetch + JSON error helper used by UI code.
 - `components/`: shared UI components.
   - `components/PageShell.tsx`: shared page shell and decorative backdrop variants for primary views.
   - `components/ErrorBanner.tsx`: shared error banner used by primary pages.
@@ -35,16 +37,17 @@
 - `tests/` and `app/__tests__`, `lib/__tests__`, `components/__tests__`: Jest test suites.
 
 ## 5. Data Flow and Boundaries
-- Attendee state flow: UI (`app/page.tsx`) -> `usePollState` -> `GET /api/poll` -> `getState` -> Vercel KV.
-- Voting flow: UI -> `POST /api/vote` -> `recordVote` -> Vercel KV.
-- Admin flow: UI (`app/admin/AdminClient.tsx`) -> `POST /api/admin/open|close|clear` -> `adminRoute` helper -> `pollService` -> Vercel KV.
-- Preset flow: Admin UI -> `GET /api/admin/presets` -> `loadPrewrittenPolls` -> filesystem JSON.
+- Attendee state flow: UI (`app/page.tsx`) -> `usePollState` -> `apiClient` -> `GET /api/poll` -> `getState` -> Vercel KV.
+- Voting flow: UI -> `apiClient` -> `POST /api/vote` -> `recordVote` -> Vercel KV.
+- Admin flow: UI (`app/admin/AdminClient.tsx`) -> `apiClient` -> `POST /api/admin/open|close|clear` -> `adminRoute` helper -> `pollService` -> Vercel KV.
+- Preset flow: Admin UI -> `apiClient` -> `GET /api/admin/presets` -> `adminRoute` helper -> `loadPrewrittenPolls` -> filesystem JSON.
 - Boundary rule: API routes should be thin, delegating domain logic to `lib/pollService.ts` and related helpers.
 
 ## 6. Cross-Cutting Concerns
 - Authn/authz: admin actions require `ADMIN_KEY`; enforced server-side via `app/api/_utils.ts` and `app/api/admin/adminRoute.ts`.
 - Logging: server routes log errors via `console.error` with route labels.
 - Error handling: 400 for invalid input, 401 for unauthorized admin key, 500 for server failures.
+- Client error handling: `lib/apiClient.ts` standardizes JSON parsing and fallback error messages for UI fetches.
 - Configuration: environment variables in `.env.local` or deployment env; no hardcoded secrets.
 
 ## 7. Data and Integrations
@@ -63,6 +66,7 @@
 - Use Vercel KV for poll state and vote aggregation to avoid database setup and keep latency low.
 - Keep poll domain logic in `lib/pollService.ts` to share between API routes and tests.
 - Admin API uses shared helpers (`app/api/_utils.ts`, `app/api/admin/adminRoute.ts`) for consistent auth and JSON parsing.
+- Client UI fetches use `lib/apiClient.ts` to keep JSON error handling consistent.
 - Prewritten polls are file-backed to allow quick edits without DB schema changes.
 - Shared `PageShell` keeps page backdrops consistent and reduces duplicated UI scaffolding across views.
 
@@ -73,10 +77,12 @@ flowchart LR
   AdminUser[Admin] --> AdminUI[Admin UI]
   Attendee[Attendee] --> AttendeeUI[Attendee UI]
   Projector[Projector] --> ResultsUI[Results UI]
-  AdminUI --> AdminAPI[/Admin API/]
-  AttendeeUI --> PollAPI[/Poll API/]
-  AttendeeUI --> VoteAPI[/Vote API/]
-  ResultsUI --> PollAPI
+  AdminUI --> ClientFetch[Client Fetch Helper]
+  AttendeeUI --> ClientFetch
+  ResultsUI --> ClientFetch
+  ClientFetch --> AdminAPI[/Admin API/]
+  ClientFetch --> PollAPI[/Poll API/]
+  ClientFetch --> VoteAPI[/Vote API/]
   AdminAPI --> AdminRoute[Admin Route Helper]
   AdminRoute --> PollService[Poll Service]
   PollAPI --> PollService
@@ -91,6 +97,7 @@ flowchart LR
     AdminUI2[app/admin]
     AttendeeUI2[app/page]
     ResultsUI2[app/results]
+    ApiClient2[lib/apiClient.ts]
     AdminAPI2[app/api/admin/*]
     AdminRoute2[app/api/admin/adminRoute.ts]
     PollAPI2[app/api/poll]
@@ -100,11 +107,13 @@ flowchart LR
     Presets2[lib/prewrittenPolls.ts]
     PageShell2[components/PageShell.tsx]
   end
-  AdminUI2 --> AdminAPI2
+  AdminUI2 --> ApiClient2
+  AttendeeUI2 --> ApiClient2
+  ResultsUI2 --> ApiClient2
+  ApiClient2 --> AdminAPI2
+  ApiClient2 --> PollAPI2
+  ApiClient2 --> VoteAPI2
   AdminAPI2 --> AdminRoute2
-  AttendeeUI2 --> PollAPI2
-  AttendeeUI2 --> VoteAPI2
-  ResultsUI2 --> PollAPI2
   AdminUI2 --> PageShell2
   AttendeeUI2 --> PageShell2
   ResultsUI2 --> PageShell2
