@@ -6,8 +6,7 @@ Last known failing tests summary:
 - `npm test` passes (expected console.error from `requireAdminKey` and `handleRouteError` tests).
 
 Next 1-3 concrete actions:
-1) Commit the API helper consolidation changes.
-2) Confirm with the user that the manual smoke checks were completed (curl against local dev server).
+1) None.
 
 Temporary constraints:
 - None noted.
